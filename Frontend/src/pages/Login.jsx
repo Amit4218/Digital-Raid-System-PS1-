@@ -1,0 +1,102 @@
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import axios from "axios";
+
+function Login() {
+  const [userName, setUserName] = useState("");
+  const [password, setPassword] = useState("");
+  const [latitude, setlatitude] = useState("");
+  const [longitude, setlongitude] = useState("");
+  console.log(longitude, latitude);
+
+  const navigate = useNavigate();
+
+  const data = { userName, password, latitude, longitude };
+
+  // This function helps us to get the lat and long of the user
+
+  useEffect(() => {
+    function getLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (positon) => {
+            setlatitude(positon.coords.latitude),
+              setlongitude(positon.coords.longitude);
+            document.getElementById("login-form").classList.remove("hidden");
+          },
+          (error) => {
+            toast.error("Please enable location to proceed");
+            document.getElementById("login-form").classList.add("hidden");
+          }
+        );
+      } else {
+        toast.info("Geolocation is not supported by this browser");
+      }
+    }
+    getLocation();
+  }, []);
+
+  // This function sends login info to the backend
+
+  const loginHandler = async (e) => {
+    e.preventDefault();
+
+    try {
+      const r = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/user/login`,
+        data
+      );
+
+      if (r.status === 200) {
+        localStorage.setItem("token", r.data.token);
+        navigate("/raidPage");
+        toast.success("Logged in successfully");
+      } else {
+        toast.error(r.data.message);
+      }
+    } catch (err) {
+      toast.error("Something went wrong");
+    }
+  };
+
+  return (
+    <div className="h-screen flex items-center justify-center bg-zinc-900">
+      <form id="login-form" onSubmit={loginHandler}>
+        <div className="col border border-amber-200 h-60 text-white p-5">
+          <div className="-mt-2">
+            <label className="block text-center" htmlFor="userName">
+              UserName
+            </label>
+            <input
+              type="text"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              className="my-2 w-full bg-zinc-500 rounded px-4 py-2"
+              id="userName"
+              placeholder="Enter Your Credentials"
+            />
+          </div>
+          <div>
+            <label className="block text-center" htmlFor="password">
+              Password
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="my-2 w-full bg-zinc-500 rounded px-4 py-2"
+              id="password"
+              placeholder="Enter Your Credentials"
+            />
+          </div>
+          <div className="mt-2 bg-blue-400 px-2 py-2 rounded-md text-center">
+            <button type="submit">Submit</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+export default Login;
