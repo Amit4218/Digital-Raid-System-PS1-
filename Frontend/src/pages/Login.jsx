@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
@@ -6,36 +6,10 @@ import axios from "axios";
 function Login() {
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
-  const [latitude, setlatitude] = useState("");
-  const [longitude, setlongitude] = useState("");
-  console.log(longitude, latitude);
 
   const navigate = useNavigate();
 
-  const data = { userName, password, latitude, longitude };
-
-  // This function helps us to get the lat and long of the user
-
-  useEffect(() => {
-    function getLocation() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (positon) => {
-            setlatitude(positon.coords.latitude),
-              setlongitude(positon.coords.longitude);
-            document.getElementById("login-form").classList.remove("hidden");
-          },
-          (error) => {
-            toast.error("Please enable location to proceed");
-            document.getElementById("login-form").classList.add("hidden");
-          }
-        );
-      } else {
-        toast.info("Geolocation is not supported by this browser");
-      }
-    }
-    getLocation();
-  }, []);
+  const data = { userName, password };
 
   // This function sends login info to the backend
 

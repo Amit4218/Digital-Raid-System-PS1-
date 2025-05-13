@@ -17,11 +17,11 @@ const sessionSchema = new mongoose.Schema(
     },
     latitude: {
       type: String,
-      required: true,
+      default: null,
     },
     longitude: {
       type: String,
-      required: true,
+      default: null,
     },
   },
   { timestamps: true }

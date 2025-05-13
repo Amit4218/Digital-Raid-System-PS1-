@@ -3,12 +3,13 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
 import Sessions from "../models/session.model.js";
+import Raid from "../models/createRaid.model.js";
 
 const router = express.Router();
 
 // Login Route
 router.post("/login", async (req, res) => {
-  const { userName, password, longitude, latitude } = req.body;
+  const { userName, password } = req.body;
 
   try {
     const user = await User.findOne({ userName });
@@ -24,8 +25,6 @@ router.post("/login", async (req, res) => {
 
     const newSession = new Sessions({
       userId: user._id,
-      longitude,
-      latitude,
     });
 
     await newSession.save();
@@ -72,6 +71,99 @@ router.post("/register", async (req, res) => {
   } catch (error) {
     console.error("Registration Error:", error);
     res.status(500).json({ message: "User Registration Error" });
+  }
+});
+
+// Update the session cordinates
+
+router.put("/update-cordinates", async (req, res) => {
+  const { token, latitude, longitude } = req.body;
+
+  try {
+    if (!token) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (!decoded.sessionId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const session = await Sessions.findByIdAndUpdate(
+      decoded.sessionId,
+      { latitude, longitude },
+      { new: true }
+    );
+
+    if (!session) {
+      return res.status(404).json({ message: "Session not found" });
+    }
+
+    res.status(200).json({ message: "Coordinates updated", session });
+  } catch (error) {
+    console.error("Coordinates Update Error:");
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+// Create Unplanned Raid
+
+router.post("/create-raid", async (req, res) => {
+  const { raidOfficer, culpritName, address, raidDate, description, raidType } =
+    req.body;
+
+  try {
+    if (!raidOfficer || !culpritName || !address || !description) {
+      return res.status(400).json({ message: "Please fill all the feilds" });
+    }
+
+    const newRaid = await Raid.create({
+      raidOfficer,
+      culpritName,
+      address,
+      raidType,
+      raidDate: raidDate ? raidDate : Date.now(),
+      description,
+    });
+
+    await newRaid.save();
+
+    res.status(200).json({
+      message: "Unplanned raiad created successfully",
+    });
+  } catch (error) {
+    console.error("Error in Create Unplanned Raid");
+    res.status(500).json({ message: "Internal server Error" });
+  }
+});
+
+// To get name of all the raid officer
+
+router.get("/get-all-raid-officers", async (req, res) => {
+  const SECRET_ACCESS_KEY = req.headers["x-access-key"];
+
+  try {
+    if (!SECRET_ACCESS_KEY) {
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: No access key provided" });
+    }
+
+    if (SECRET_ACCESS_KEY !== process.env.SECRET_ACCESS_KEY) {
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: Invalid access key" });
+    }
+
+    const users = await User.find().select("-password");
+
+    return res.status(200).json({
+      message: "Data fetched successfully",
+      users,
+    });
+  } catch (error) {
+    console.error("Error fetching officers:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 });
 
