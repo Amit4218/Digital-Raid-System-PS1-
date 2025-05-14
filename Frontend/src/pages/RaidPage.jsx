@@ -6,16 +6,15 @@ import Loading from "../components/Loading";
 
 function RaidPage() {
   const navigate = useNavigate();
+
   const [loading, setLoading] = useState(false);
-  const [latitude, setLatitude] = useState("");
-  const [longitude, setLongitude] = useState("");
-  const [formVisible, setFormVisible] = useState(false);
+  const [latitude, setLatitude] = useState(null);
+  const [longitude, setLongitude] = useState(null);
   const [bluetoothPopupVisible, setBluetoothPopupVisible] = useState(false);
+  const [raids, setRaids] = useState([]);
+  const [selectedRaidId, setSelectedRaidId] = useState(null);
 
   const knownDeviceName = "Test_bluetooth";
-  const token = localStorage.getItem("token");
-
-  const data = { token, latitude, longitude };
 
   // Get user location on mount
   useEffect(() => {
@@ -25,11 +24,9 @@ function RaidPage() {
           (position) => {
             setLatitude(position.coords.latitude);
             setLongitude(position.coords.longitude);
-            setFormVisible(true);
           },
-          (error) => {
+          () => {
             toast.error("Please enable location to proceed");
-            setFormVisible(false);
           }
         );
       } else {
@@ -40,12 +37,45 @@ function RaidPage() {
     getLocation();
   }, []);
 
-  // Toggle bluetooth popup
-  const notify = () => setBluetoothPopupVisible(true);
-  const cancel = () => setBluetoothPopupVisible(false);
+  // Fetch all raids
+  useEffect(() => {
+    const getRaids = async () => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}/user/get-all-raids`,
+          {
+            headers: {
+              "x-access-key": import.meta.env.VITE_SECRET_ACCESS_KEY,
+            },
+          }
+        );
+        setRaids(res.data.raids);
+      } catch (error) {
+        console.error("Error fetching raids:", error);
+        toast.error("Failed to fetch raids");
+      }
+    };
 
-  // Update coordinates API call
+    getRaids();
+  }, []);
+
+  // Show popup
+  const notify = (raidId) => {
+    setSelectedRaidId(raidId);
+    setBluetoothPopupVisible(true);
+  };
+
+  // Cancel popup
+  const cancel = () => {
+    setBluetoothPopupVisible(false);
+    setSelectedRaidId(null);
+  };
+
+  // Update coordinates API
   const updateCoordinates = async () => {
+    const token = localStorage.getItem("token");
+    const data = { token, latitude, longitude };
+
     try {
       const res = await axios.put(
         `${import.meta.env.VITE_BASE_URL}/user/update-cordinates`,
@@ -59,7 +89,7 @@ function RaidPage() {
     }
   };
 
-  // Bluetooth scanning and navigation logic
+  // Bluetooth login & navigate
   const scan = async () => {
     if (!navigator.bluetooth) {
       toast.error("Web Bluetooth API not supported in this browser.");
@@ -78,15 +108,16 @@ function RaidPage() {
         cancel();
         setLoading(true);
 
-        const update = await updateCoordinates();
-        if (update) {
+        const updated = await updateCoordinates();
+        if (updated && selectedRaidId) {
           toast.success("Raid Started");
-          navigate("/raid-start-form");
+          navigate(`raid-start-form/${selectedRaidId}`);
         }
 
         setLoading(false);
       } else {
         toast.error("Unknown device. Access denied.");
+        setLoading(false);
       }
     } catch (error) {
       console.error("Bluetooth Error:", error);
@@ -100,50 +131,111 @@ function RaidPage() {
       {loading ? (
         <Loading />
       ) : (
-        <div className="h-screen bg-zinc-800">
-          {formVisible && (
+        <div className="bg-zinc-800 min-h-screen text-white">
+          {latitude && longitude ? (
             <>
-              <div className="flex items-center justify-center z-2">
-                <button
-                  onClick={notify}
-                  className="bg-blue-600 px-4 py-3 mt-60"
-                >
-                  Start
-                </button>
+              <div className="flex justify-center items-center pt-20">
+                <div className="w-[90%] min-h-40 p-5 border border-amber-300">
+                  <div className="space-y-5">
+                    {raids.map((raid) => (
+                      <div
+                        key={raid._id}
+                        className="border p-4 rounded-md shadow-sm"
+                      >
+                        <p>
+                          <strong>ID:</strong> {raid._id}
+                        </p>
+                        <p>
+                          <strong>Officer:</strong> {raid.raidOfficer}
+                        </p>
+                        <p>
+                          <strong>Culprit Name:</strong> {raid.culpritName}
+                        </p>
+                        <p>
+                          <strong>Address:</strong> {raid.address}
+                        </p>
+                        <p>
+                          <strong>Raid Type:</strong> {raid.raidType}
+                        </p>
+                        <p>
+                          <strong>Raid Date:</strong>{" "}
+                          {new Date(raid.raidDate).toLocaleDateString()}
+                        </p>
+                        <p>
+                          <strong>Status:</strong> {raid.status}
+                        </p>
+                        <p>
+                          <strong>Description:</strong>{" "}
+                          {raid.description || "N/A"}
+                        </p>
+                        <p>
+                          <strong>Approval:</strong>{" "}
+                          {raid.approvel ? "Approved" : "Not Approved"}
+                        </p>
+                        {raid.approvel ? (
+                          <button
+                            onClick={() => notify(raid._id)}
+                            className="mt-2 px-4 py-2 bg-blue-500 text-white rounded"
+                          >
+                            Start
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => notify(raid._id)}
+                            className="mt-2 px-4 py-2 bg-gray-400 text-white rounded"
+                            disabled
+                          >
+                            {raid.status === "pending"
+                              ? "Pending"
+                              : raid.status === "active"
+                              ? "Active"
+                              : "Complete"}
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
 
+              {/* Bluetooth Popup */}
               {bluetoothPopupVisible && (
-                <div className="-mt-60 z-10">
-                  <div className="flex justify-center items-center">
-                    <section className="h-35 w-60 border border-white rounded bg-purple-300 p-4 text-md">
-                      <h3>Login with RFID to continue!</h3>
-                      <div className="row row-2 flex gap-5">
-                        <button
-                          onClick={scan}
-                          className="mt-3 px-4 py-2 bg-blue-400 rounded"
-                        >
-                          Okay
-                        </button>
-                        <button
-                          onClick={cancel}
-                          className="mt-3 px-4 py-2 bg-red-400 rounded"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </section>
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
+                  <div className="w-72 border border-white rounded bg-purple-300 p-4 text-md text-black">
+                    <h3 className="mb-2 font-semibold">
+                      Login with RFID to continue!
+                    </h3>
+                    <div className="flex justify-between gap-4">
+                      <button
+                        onClick={scan}
+                        className="px-4 py-2 bg-blue-500 text-white rounded"
+                      >
+                        Okay
+                      </button>
+                      <button
+                        onClick={cancel}
+                        className="px-4 py-2 bg-red-500 text-white rounded"
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
 
-              <div className="flex justify-center items-center">
-                <div className="w-30 mt-5 px-4 py-3 rounded bg-yellow-500">
+              {/* Create Unplanned Raid Button */}
+              <div className="flex justify-center items-center mt-5">
+                <div className="w-40 px-4 py-3 rounded bg-yellow-500 text-center cursor-pointer">
                   <button onClick={() => navigate("/unplanned-raid")}>
                     Create Unplanned
                   </button>
                 </div>
               </div>
             </>
+          ) : (
+            <div className="text-center pt-40">
+              <p>Waiting for location access...</p>
+            </div>
           )}
         </div>
       )}

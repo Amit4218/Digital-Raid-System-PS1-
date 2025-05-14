@@ -46,7 +46,7 @@ const createRaidSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ["pending", "active", "complete"],
-      default: "active",
+      default: "pending",
     },
   },
   { timestamps: true }

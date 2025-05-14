@@ -106,6 +106,7 @@ router.put("/update-cordinates", async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
 // Create Unplanned Raid
 
 router.post("/create-raid", async (req, res) => {
@@ -160,6 +161,54 @@ router.get("/get-all-raid-officers", async (req, res) => {
     return res.status(200).json({
       message: "Data fetched successfully",
       users,
+    });
+  } catch (error) {
+    console.error("Error fetching raids:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+// get approved raid
+
+router.post("/raid/:id", async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(401).json({ message: "unauthorized" });
+  }
+
+  try {
+    const raid = await Raid.findById(id);
+
+    res.status(200).json({ message: "success", info: { raid } });
+  } catch (error) {
+    return res.status(500).json({ message: "something wen wrong" });
+  }
+});
+
+// To get all raids
+
+router.get("/get-all-raids", async (req, res) => {
+  const SECRET_ACCESS_KEY = req.headers["x-access-key"];
+
+  try {
+    if (!SECRET_ACCESS_KEY) {
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: No access key provided" });
+    }
+
+    if (SECRET_ACCESS_KEY !== process.env.SECRET_ACCESS_KEY) {
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: Invalid access key" });
+    }
+
+    const raids = await Raid.find();
+
+    res.status(200).json({
+      message: "Data fetched successfully",
+      raids,
     });
   } catch (error) {
     console.error("Error fetching officers:", error);
