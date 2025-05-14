@@ -3,16 +3,15 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
 import Sessions from "../models/session.model.js";
-import Raid from "../models/createRaid.model.js";
 
 const router = express.Router();
 
 // Login Route
 router.post("/login", async (req, res) => {
-  const { userName, password } = req.body;
+  const { username, password } = req.body;
 
   try {
-    const user = await User.findOne({ userName });
+    const user = await User.findOne({ username });
 
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
@@ -49,10 +48,11 @@ router.post("/login", async (req, res) => {
 
 // Register Route
 router.post("/register", async (req, res) => {
-  const { userName, password } = req.body;
+  const { username, password, email, department, contactNumber, name } =
+    req.body;
 
   try {
-    const existingUser = await User.findOne({ userName });
+    const existingUser = await User.findOne({ username });
 
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
@@ -61,13 +61,19 @@ router.post("/register", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = new User({
-      userName,
+      username,
       password: hashedPassword,
+      email,
+      personalDetails: {
+        name,
+        department,
+        contactNumber,
+      },
     });
 
     await newUser.save();
 
-    res.status(200).json({ message: "User Created Successfully" });
+    res.status(200).json({ message: "User Created Successfully", newUser });
   } catch (error) {
     console.error("Registration Error:", error);
     res.status(500).json({ message: "User Registration Error" });

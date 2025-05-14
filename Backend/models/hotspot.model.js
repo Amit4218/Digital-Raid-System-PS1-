@@ -4,15 +4,39 @@ const hotspotSchema = new moongoose.Schema(
   {
     location: {
       // GeoJSON
-      type: "Point",
-      coordinates: [longitude, latitude],
+      coordinates: {
+        longitude: {
+          type: String,
+          required: true,
+        },
+        latitude: {
+          type: String,
+          required: true,
+        },
+      },
     },
-    address: String,
-    raidCount: Number,
-    lastRaidDate: Date,
+    address: {
+      type: String,
+      required: true,
+    },
+    raidCount: {
+      type: String,
+      required: true,
+    },
+    lastRaidDate: {
+      type: Date,
+      default: null,
+    },
     commonViolations: [String],
-    severityLevel: String, // 'high', 'medium', 'low'
-    notes: String,
+    severityLevel: {
+      type: String,
+      enum: ["High", "medium", "low"],
+      required: true,
+    }, // 'high', 'medium', 'low'
+    notes: {
+      type: String,
+      required: true,
+    },
   },
   { timestamps: true }
 );

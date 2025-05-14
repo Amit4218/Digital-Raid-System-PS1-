@@ -1,63 +1,154 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 
 const evidenceSchema = new mongoose.Schema(
   {
-    raidId: ObjectId, // Reference to Raids
-    exhibitType: String, // 'item', 'document', 'digital'
-    category: String,
-    description: String,
-    quantity: Number,
-    seizedBy: ObjectId, // Reference to Users
-    seizureDate: Date,
-    locationSeized: {
-      // GeoJSON
-      type: "Point",
-      coordinates: [longitude, latitude],
+    raidId: {
+      type: mongoose.Schema.ObjectId,
+      required: true,
+    }, // Reference to Raids
+    exhibitType: {
+      type: [String],
+      enum: ["item", "document", "digital"],
+    }, // 'item', 'document', 'digital'
+    category: {
+      type: String,
+      required: true,
     },
-    mediaFiles: [
-      {
-        fileType: String, // 'image', 'video'
-        fileUrl: String,
-        originalName: String,
-        hash: String,
-        metadata: {
-          gpsCoordinates: {
-            latitude: Number,
-            longitude: Number,
-          },
-          timestamp: Date,
-          deviceInfo: String,
+    description: {
+      type: String,
+      required: true,
+    },
+    quantity: {
+      type: Number,
+      required: true,
+    },
+    seizedBy: {
+      type: mongoose.Schema.ObjectId,
+      required: true,
+    }, // Reference to Users
+    seizureDate: {
+      type: Date,
+      default: Date.now(),
+    },
+    locationSeized: {
+      coordinates: {
+        longitude: {
+          type: String,
+          required: true,
         },
-        uploadedAt: Date,
+        latitude: {
+          type: String,
+          required: true,
+        },
       },
-    ],
+    },
+    mediaFiles: {
+      images: {
+        fileUrl: {
+          type: [String],
+          required: true,
+        },
+        originalName: {
+          type: String,
+          required: true,
+        },
+        hash: {
+          type: String,
+          required: true,
+        },
+      },
+      metadata: {
+        latitude: {
+          type: String,
+          required: true,
+        },
+        longitude: {
+          type: String,
+          required: true,
+        },
+        timestamp: {
+          type: Date,
+          required: true,
+        },
+        deviceInfo: {
+          type: String,
+          required: true,
+        },
+      },
+      uploadedAt: {
+        type: Date,
+        default: Date.now(),
+      },
+    },
+
     custodyChain: [
       {
-        transferredFrom: ObjectId, // Reference to Users
-        transferredTo: ObjectId, // Reference to Users
-        transferDate: Date,
-        transferPurpose: String,
-        digitalSignatures: {
-          fromSignature: String,
-          toSignature: String,
-          signaturesHash: String,
+        transferredFrom: {
+          type: mongoose.Schema.ObjectId,
+          required: true,
+        }, // Reference to Users
+        transferredTo: {
+          type: mongoose.Schema.ObjectId,
+          required: true,
+        }, // Reference to Users
+        transferDate: {
+          type: Date,
+          default: Date.now(),
         },
-        notes: String,
+        transferPurpose: {
+          type: String,
+          required: true,
+        },
+        digitalSignatures: {
+          fromSignature: {
+            type: String,
+            required: true,
+          },
+          toSignature: {
+            type: String,
+            required: true,
+          },
+          signaturesHash: {
+            type: String,
+            required: true,
+          },
+        },
+        notes: {
+          type: String,
+          required: true,
+        },
       },
     ],
-    currentHolder: ObjectId, // Reference to Users
-    isDisposed: Boolean,
+    currentHolder: {
+      type: mongoose.Schema.ObjectId,
+      required: true,
+    }, // Reference to Users
+    isDisposed: {
+      type: Boolean,
+      default: false,
+    },
     disposalDetails: {
-      method: String,
-      disposedBy: ObjectId, // Reference to Users
-      disposalDate: Date,
-      authorization: String,
+      method: {
+        type: String,
+        required: true,
+      },
+      disposedBy: {
+        type: mongoose.Schema.ObjectId,
+        required: true,
+      }, // Reference to Users
+      disposalDate: {
+        type: Date,
+        default: null,
+      },
+      authorization: {
+        type: String,
+        required: true,
+      },
     },
   },
   { timestamps: true }
 );
 
-
-const Evidence = moongoose.model("evidence", evidenceSchema);
+const Evidence = mongoose.model("evidence", evidenceSchema);
 
 export default Evidence;
