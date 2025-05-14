@@ -15,7 +15,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/raidPage" element={<RaidPage />} />
         <Route path="/unplanned-raid" element={<Unplanned />} />
-        <Route path="/raid-start-form" element={<Planned />} />
+        <Route path="/raid-start-form/:id" element={<Planned />} />
       </Routes>
       <ToastContainer theme="black" transition={Slide} autoClose={1000} />
     </>
