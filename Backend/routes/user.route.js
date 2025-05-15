@@ -3,15 +3,16 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
 import Sessions from "../models/session.model.js";
+import Raid from "../models/raid.model.js";
 
 const router = express.Router();
 
 // Login Route
 router.post("/login", async (req, res) => {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ username });
+    const user = await User.findOne({ email });
 
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
@@ -39,7 +40,7 @@ router.post("/login", async (req, res) => {
       }
     );
 
-    res.status(200).json({ message: "Logged In Successfully", token });
+    res.status(200).json({ message: "Logged In Successfully", token, user });
   } catch (error) {
     console.error("Login Error:", error);
     res.status(500).json({ message: "Login Error" });
@@ -116,31 +117,60 @@ router.put("/update-cordinates", async (req, res) => {
 // Create Unplanned Raid
 
 router.post("/create-raid", async (req, res) => {
-  const { raidOfficer, culpritName, address, raidDate, description, raidType } =
+  const { inCharge, culprits, location, description, scheduledDate, userId } =
     req.body;
 
   try {
-    if (!raidOfficer || !culpritName || !address || !description) {
-      return res.status(400).json({ message: "Please fill all the feilds" });
+    // find the officer
+    const user = await User.findById(userId);
+
+    // Validate required fields
+    if (!inCharge || !culprits || !location || !description) {
+      return res.status(400).json({ message: "Missing required fields" });
     }
 
+    // Validate culprit details
+    if (
+      !culprits.length ||
+      !culprits[0].name ||
+      !culprits[0].identification ||
+      !culprits[0].description
+    ) {
+      return res.status(400).json({ message: "Invalid culprit details" });
+    }
+
+    // Validate location coordinates
+    // if (!location.coordinates.longitude || !location.coordinates.latitude) {
+    //   return res.status(400).json({ message: "Missing coordinates" });
+    // }
+
     const newRaid = await Raid.create({
-      raidOfficer,
-      culpritName,
-      address,
-      raidType,
-      raidDate: raidDate ? raidDate : Date.now(),
+      raidType: ["unplanned"],
+      status: "pending",
+      inCharge,
+      culprits,
+      location: {
+        address: location.address,
+        hotspot: location.hotspot || false,
+      },
+      scheduledDate: scheduledDate || Date.now(),
       description,
+      isUnplannedRequest: true,
+      unplannedRequestDetails: {
+        approvalStatus: "pending",
+        requestDate: new Date(),
+      },
+      // You'll need to add authentication middleware to get createdBy
+      createdBy: user._id, // Replace with actual user ID from auth
     });
 
-    await newRaid.save();
-
-    res.status(200).json({
-      message: "Unplanned raiad created successfully",
+    res.status(201).json({
+      message: "Unplanned raid request created successfully",
+      data: newRaid,
     });
   } catch (error) {
-    console.error("Error in Create Unplanned Raid");
-    res.status(500).json({ message: "Internal server Error" });
+    console.error("Error creating raid:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 
@@ -186,9 +216,13 @@ router.post("/raid/:id", async (req, res) => {
   try {
     const raid = await Raid.findById(id);
 
-    res.status(200).json({ message: "success", info: { raid } });
+    const user = await User.findOne(raid.inCharge);
+
+    let inChargeName = user.username;
+
+    res.status(200).json({ message: "success", info: { raid, inChargeName } });
   } catch (error) {
-    return res.status(500).json({ message: "something wen wrong" });
+    return res.status(500).json({ message: "something went wrong", error });
   }
 });
 

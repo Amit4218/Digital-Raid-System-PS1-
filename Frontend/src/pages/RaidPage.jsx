@@ -149,10 +149,11 @@ function RaidPage() {
                           <strong>Officer:</strong> {raid.raidOfficer}
                         </p>
                         <p>
-                          <strong>Culprit Name:</strong> {raid.culpritName}
+                          <strong>Culprit Name:</strong>{" "}
+                          {raid.culprits.name}
                         </p>
                         <p>
-                          <strong>Address:</strong> {raid.address}
+                          <strong>Address:</strong> {raid.location.address}
                         </p>
                         <p>
                           <strong>Raid Type:</strong> {raid.raidType}
