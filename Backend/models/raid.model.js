@@ -53,10 +53,6 @@ const raidSchema = new mongoose.Schema(
           default: null,
         },
       },
-      hotspot: {
-        type: Boolean,
-        default: false,
-      },
     },
     scheduledDate: {
       type: Date,
