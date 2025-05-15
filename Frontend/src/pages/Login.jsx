@@ -4,12 +4,12 @@ import { toast } from "react-toastify";
 import axios from "axios";
 
 function Login() {
-  const [userName, setUserName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const navigate = useNavigate();
 
-  const data = { userName, password };
+  const data = { email, password };
 
   // This function sends login info to the backend
 
@@ -24,6 +24,7 @@ function Login() {
 
       if (r.status === 200) {
         localStorage.setItem("token", r.data.token);
+        localStorage.setItem("userId", r.data.user._id);
         navigate("/raidPage");
         toast.success("Logged in successfully");
       } else {
@@ -44,8 +45,8 @@ function Login() {
             </label>
             <input
               type="text"
-              value={userName}
-              onChange={(e) => setUserName(e.target.value)}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="my-2 w-full bg-zinc-500 rounded px-4 py-2"
               id="userName"
               placeholder="Enter Your Credentials"

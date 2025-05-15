@@ -54,7 +54,7 @@ const evidenceSchema = new mongoose.Schema(
         },
         hash: {
           type: String,
-          required: true,
+          default:null
         },
       },
       metadata: {
@@ -68,11 +68,11 @@ const evidenceSchema = new mongoose.Schema(
         },
         timestamp: {
           type: Date,
-          required: true,
+          default:null
         },
         deviceInfo: {
           type: String,
-          required: true,
+          default:null
         },
       },
       uploadedAt: {

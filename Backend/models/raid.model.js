@@ -8,9 +8,9 @@ const raidSchema = new mongoose.Schema(
       required: true,
     }, // 'planned' or 'unplanned'
     status: {
-      type: [String],
+      type: String,
       enum: ["pending", "active", "completed"],
-      required: true,
+      default: "pending",
     }, // 'pending', 'active', 'completed', 'completed_approved'
     createdBy: {
       type: mongoose.Schema.ObjectId,
@@ -46,11 +46,11 @@ const raidSchema = new mongoose.Schema(
       coordinates: {
         longitude: {
           type: String,
-          required: true,
+          default: null,
         },
         latitude: {
           type: String,
-          required: true,
+          default: null,
         },
       },
     },
@@ -99,7 +99,7 @@ const raidSchema = new mongoose.Schema(
         default: null,
       },
       approvalStatus: {
-        type: [String],
+        type: String,
         enum: ["pending", "approved", "rejected"],
         default: "pending",
       }, // 'pending', 'approved', 'rejected'

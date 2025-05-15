@@ -6,20 +6,36 @@ import { toast } from "react-toastify";
 function Unplanned() {
   const [officers, setOfficers] = useState([]);
   const navigate = useNavigate();
-
-  // Pre-fill today's date
   const today = new Date().toISOString().split("T")[0];
 
   const [formData, setFormData] = useState({
-    raidOfficer: "",
-    culpritName: "",
-    address: "",
-    raidType: "unplanned",
-    raidDate: today,
+    inCharge: "",
+    culprits: [
+      {
+        name: "",
+        identification: "",
+        description: "",
+      },
+    ],
+    location: {
+      address: "",
+      coordinates: {
+        longitude: "",
+        latitude: "",
+      },
+      hotspot: false,
+    },
+    raidType: ["unplanned"],
+    scheduledDate: today,
     description: "",
+    isUnplannedRequest: true,
+    unplannedRequestDetails: {
+      approvalStatus: "pending",
+      requestDate: today,
+    },
+    userId: localStorage.getItem("userId"),
   });
 
-  // Fetch all raid officers
   useEffect(() => {
     const getOfficers = async () => {
       try {
@@ -39,29 +55,37 @@ function Unplanned() {
     getOfficers();
   }, []);
 
-  // Update form data
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    const { name, value, type, checked } = e.target;
+    const path = name.split(/[\[\].]+/).filter((k) => k !== "");
+
+    setFormData((prev) => {
+      const newState = JSON.parse(JSON.stringify(prev));
+      let current = newState;
+
+      for (let i = 0; i < path.length - 1; i++) {
+        const part = path[i];
+        if (!current[part]) current[part] = isNaN(path[i + 1]) ? {} : [];
+        current = current[part];
+      }
+
+      const lastPart = path[path.length - 1];
+      current[lastPart] = type === "checkbox" ? checked : value;
+      return newState;
+    });
   };
 
-  // Submit form data
   const submitHandler = async () => {
     try {
       const res = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/user/create-raid`,
         formData
       );
-      // console.log("Raid created successfully:", res.data);
       toast.success("Request created");
       navigate("/raidPage");
-
-      // Optionally reset the form or show a success message
     } catch (error) {
       console.error("Failed to create raid:", error);
+      toast.error("Failed to create request");
     }
   };
 
@@ -73,82 +97,117 @@ function Unplanned() {
         </h2>
 
         <div>
-          <label htmlFor="raidOfficer" className="block mb-1 text-sm">
+          <label htmlFor="inCharge" className="block mb-1 text-sm">
             Raid Officer
           </label>
           <select
-            name="raidOfficer"
-            id="raidOfficer"
-            value={formData.raidOfficer}
+            name="inCharge"
+            id="inCharge"
+            value={formData.inCharge}
             onChange={handleChange}
             className="w-full px-3 py-2 rounded bg-zinc-700 text-white border border-zinc-600"
           >
             <option value="">Select a Raid Officer</option>
-            {officers.map((officer, idx) => (
-              <option key={idx} value={officer.userName}>
-                {officer.userName}
+            {officers.map((officer) => (
+              <option key={officer._id} value={officer._id}>
+                {officer.username}
               </option>
             ))}
           </select>
         </div>
 
         <div>
-          <label htmlFor="culpritName" className="block mb-1 text-sm">
-            Culprit Name
-          </label>
+          <label className="block mb-2 text-sm">Culprit Details</label>
           <input
             type="text"
-            id="culpritName"
-            name="culpritName"
-            value={formData.culpritName}
+            name="culprits[0].name"
+            value={formData.culprits[0].name}
             onChange={handleChange}
-            placeholder="Enter culprit name"
+            placeholder="Culprit Name"
+            className="w-full px-3 py-2 rounded bg-zinc-700 text-white border border-zinc-600 mb-2"
+          />
+          <input
+            type="text"
+            name="culprits[0].identification"
+            value={formData.culprits[0].identification}
+            onChange={handleChange}
+            placeholder="Identification Number"
+            className="w-full px-3 py-2 rounded bg-zinc-700 text-white border border-zinc-600 mb-2"
+          />
+          <input
+            type="text"
+            name="culprits[0].description"
+            value={formData.culprits[0].description}
+            onChange={handleChange}
+            placeholder="Culprit Description"
             className="w-full px-3 py-2 rounded bg-zinc-700 text-white border border-zinc-600"
           />
         </div>
 
         <div>
           <label htmlFor="address" className="block mb-1 text-sm">
-            Address
+            Location Address
           </label>
           <input
             type="text"
-            id="address"
-            name="address"
-            value={formData.address}
+            name="location.address"
+            value={formData.location.address}
             onChange={handleChange}
-            placeholder="Enter address"
             className="w-full px-3 py-2 rounded bg-zinc-700 text-white border border-zinc-600"
           />
         </div>
 
-        <div>
-          <label htmlFor="raidDate" className="block mb-1 text-sm">
-            Date
-          </label>
-          <input
-            type="date"
-            id="raidDate"
-            name="raidDate"
-            value={formData.raidDate}
-            onChange={handleChange}
-            className="w-full px-3 py-2 rounded bg-zinc-700 text-white border border-zinc-600"
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="longitude" className="block mb-1 text-sm">
+              Longitude
+            </label>
+            <input
+              type="text"
+              name="location.coordinates.longitude"
+              value={formData.location.coordinates.longitude}
+              onChange={handleChange}
+              className="w-full px-3 py-2 rounded bg-zinc-700 text-white border border-zinc-600"
+            />
+          </div>
+          <div>
+            <label htmlFor="latitude" className="block mb-1 text-sm">
+              Latitude
+            </label>
+            <input
+              type="text"
+              name="location.coordinates.latitude"
+              value={formData.location.coordinates.latitude}
+              onChange={handleChange}
+              className="w-full px-3 py-2 rounded bg-zinc-700 text-white border border-zinc-600"
+            />
+          </div>
         </div>
 
         <div className="flex items-center space-x-2">
           <input
-            type="radio"
-            id="raidType"
-            name="raidType"
-            value="unplanned"
-            checked={formData.raidType === "unplanned"}
+            type="checkbox"
+            name="location.hotspot"
+            checked={formData.location.hotspot}
             onChange={handleChange}
             className="text-blue-600"
           />
-          <label htmlFor="raidType" className="text-sm">
-            Unplanned Raid
+          <label htmlFor="hotspot" className="text-sm">
+            Mark as Hotspot
           </label>
+        </div>
+
+        <div>
+          <label htmlFor="scheduledDate" className="block mb-1 text-sm">
+            Scheduled Date
+          </label>
+          <input
+            type="date"
+            name="scheduledDate"
+            value={formData.scheduledDate}
+            onChange={handleChange}
+            className="w-full px-3 py-2 rounded bg-zinc-700 text-white border border-zinc-600"
+          />
         </div>
 
         <div>
@@ -156,19 +215,20 @@ function Unplanned() {
             Description
           </label>
           <textarea
-            id="description"
             name="description"
             value={formData.description}
             onChange={handleChange}
-            rows="4"
-            placeholder="Enter a brief description"
             className="w-full px-3 py-2 rounded bg-zinc-700 text-white border border-zinc-600"
-          ></textarea>
+            rows="4"
+          />
         </div>
 
-        <div className="w-40 h-10 text-xs px-4 py-3 bg-yellow-300 text-center text-black cursor-pointer">
-          <button onClick={submitHandler}>Request approval</button>
-        </div>
+        <button
+          onClick={submitHandler}
+          className="w-full py-2 px-4 bg-yellow-300 text-black rounded hover:bg-yellow-400 transition-colors"
+        >
+          Request Approval
+        </button>
       </div>
     </div>
   );
