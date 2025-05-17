@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
 import Sessions from "../models/session.model.js";
 import Raid from "../models/raid.model.js";
+import Crimainal from "../models/criminal.model.js";
 
 const router = express.Router();
 
@@ -288,6 +289,56 @@ router.post("/logout", async (req, res) => {
       return res.status(401).json({ message: "Token expired" });
     }
     res.status(500).json({ message: "Logout error", error: error.message });
+  }
+});
+
+// create criminal
+
+router.post("/criminal", async (req, res) => {
+  const { criminalId, criminalName, pastRecords } = req.body;
+
+  if (!criminalId || !criminalName || !pastRecords) {
+    return res
+      .status(400)
+      .json({ message: "Missing or invalid required fields" });
+  }
+
+  try {
+    const criminal = await Crimainal.create({
+      criminalId,
+      criminalName,
+      pastRecords,
+    });
+
+    res
+      .status(201)
+      .json({ message: "Criminal created successfully", criminal });
+  } catch (error) {
+    console.error("Error creating criminal:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// get crimals by id
+
+router.get("/search-criminal/:criminalId", async (req, res) => {
+  const { criminalId } = req.params;
+
+  try {
+    if (!criminalId) {
+      return res.status(400).json({ message: "please provide criminalId !" });
+    }
+
+    const criminal = await Crimainal.findOne({ criminalId });
+
+    if (!criminal) {
+      res.status(400).json({ message: "The criminal dosen't exist in the DB" });
+    }
+
+    res.status(200).json({ message: "success", criminal: { criminal } });
+  } catch (error) {
+    console.error("criminal route error", error);
+    res.status(500).json({ message: "something went wrong" });
   }
 });
 
