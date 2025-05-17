@@ -103,7 +103,7 @@ const RaidStatusGraph = () => {
       legend: { position: "right" },
       title: {
         display: true,
-        text: `Overall Raid Status (${totalCount})`,
+        text: `Overall combined Raids (${totalCount})`,
         font: { size: 16 },
       },
     },

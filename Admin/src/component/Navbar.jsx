@@ -1,9 +1,22 @@
 import React from "react";
-// import { FaSignOutAlt } from "react-icons/fa";
+import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+import Notification from "./Notification";
 
 const Navbar = () => {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // Fixed casing to follow React conventions
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    toast.success("Logged out successfully");
+    navigate("/");
+  };
+
   return (
-    <nav className="flex items-center justify-between px-6 py-3 bg-[#1f3143] shadow-md sticky top-0 z-50">
+    <nav className="w-[100vw] flex items-center justify-between px-6 py-3 bg-[#1f3143] shadow-md sticky top-0 z-50">
       {/* Left - Profile Image */}
       <div className="flex items-center gap-4">
         <img
@@ -14,18 +27,32 @@ const Navbar = () => {
       </div>
 
       {/* Center - Navigation Buttons */}
-      <div className="flex w-[70%] gap-15">
-        <button className="px-6 py- text-white font-semibold rounded-full border border-white hover:bg-white hover:text-[#1f3143] shadow-md">
-          Dashboard
-        </button>
-        <button className="px-6 py-2 text-white font-semibold rounded-full border border-white hover:bg-white hover:text-[#1f3143] shadow-md">
-          Raids
-        </button>
+      <div className="w-[60%] flex  gap-10">
+        {" "}
+        {/* Removed fixed width and corrected gap class */}
+        <Link to="/dashboard">
+          {" "}
+          {/* Added proper Link wrapper */}
+          <button className="px-6 py-2 text-white font-semibold rounded-full border border-white hover:bg-white hover:text-[#1f3143] shadow-md">
+            Dashboard
+          </button>
+        </Link>
+        <Link to="/admin/raids">
+          <button className="px-6 py-2 text-white font-semibold rounded-full border border-white hover:bg-white hover:text-[#1f3143] shadow-md">
+            Raids
+          </button>
+        </Link>
       </div>
 
-      {/* Right - Logout */}
-      <div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-[#eae8cc] text-[#1f3143] rounded-md font-medium hover:bg-[#e2e0bb] transition">
+      {/* Right - Notifications and Logout */}
+      <div className="flex items-center gap-12">
+        <Notification />
+
+        {/* Logout Button */}
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 px-4 py-2 hover:cursor-pointer bg-[#eae8cc] text-[#1f3143] rounded-md font-medium hover:bg-[#e2e0bb] transition"
+        >
           Logout
           <svg
             xmlns="http://www.w3.org/2000/svg"

@@ -25,7 +25,7 @@ function Login() {
       if (r.status === 200) {
         localStorage.setItem("token", r.data.token);
         localStorage.setItem("userId", r.data.user._id);
-        navigate("/adminLanding");
+        navigate("/admin");
         toast.success("Logged in successfully");
       } else {
         toast.error(r.data.message);
@@ -65,8 +65,8 @@ function Login() {
               placeholder="Enter Your Credentials"
             />
           </div>
-          <div className="mt-2 bg-blue-400 px-2 py-2 rounded-md text-center">
-            <button type="submit">Submit</button>
+          <div className="w-62 mt-2 bg-blue-400 p-2 rounded-md text-center">
+            <button className=" w-full hover:cursor-pointer" type="submit">Submit</button>
           </div>
         </div>
       </form>
