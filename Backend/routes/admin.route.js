@@ -46,7 +46,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-//planned raid create route
+// create a new planned raid
 
 router.post("/createRaid", async (req, res) => {
   const {
@@ -98,6 +98,9 @@ router.post("/createRaid", async (req, res) => {
     });
   }
 });
+
+
+
 
 //raid data fetch route for heatmap
 

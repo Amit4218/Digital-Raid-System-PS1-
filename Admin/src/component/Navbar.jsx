@@ -16,7 +16,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="flex items-center justify-between px-6 py-3 bg-[#1f3143] shadow-md sticky top-0 z-50">
+    <nav className="w-[100vw] flex items-center justify-between px-6 py-3 bg-[#1f3143] shadow-md sticky top-0 z-50">
       {/* Left - Profile Image */}
       <div className="flex items-center gap-4">
         <img
@@ -27,7 +27,7 @@ const Navbar = () => {
       </div>
 
       {/* Center - Navigation Buttons */}
-      <div className="flex gap-4">
+      <div className="w-[60%] flex  gap-10">
         {" "}
         {/* Removed fixed width and corrected gap class */}
         <Link to="/dashboard">
@@ -45,7 +45,7 @@ const Navbar = () => {
       </div>
 
       {/* Right - Notifications and Logout */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-12">
         <Notification />
 
         {/* Logout Button */}
