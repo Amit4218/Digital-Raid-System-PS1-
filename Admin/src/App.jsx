@@ -1,15 +1,15 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
-import Heatmap from "./component/Heatmap";
+import AdminLanding from "./pages/AdminLanding";
 
 function App() {
   return (
     <>
-      {/* <Routes>
+      <Routes>
         <Route path="/" element={<Login />} />
-      </Routes> */}
-      <Heatmap />
+        <Route path="/admin" element={<AdminLanding />} />
+      </Routes>
     </>
   );
 }

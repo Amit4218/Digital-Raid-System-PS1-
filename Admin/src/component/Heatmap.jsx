@@ -22,7 +22,9 @@ const HeatmapLayer = () => {
   useEffect(() => {
     const fetchHeatmapData = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/admin/heatmap");
+        const response = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}/admin/heatmap`
+        );
         const heatmapPoints = response.data.heatmapData
           .filter((point) => point.lat && point.long)
           .map((point) => [
@@ -74,7 +76,9 @@ const Heatmap = () => {
 
   const fetchMarkerData = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/admin/heatmap");
+      const response = await axios.get(
+        `${import.meta.env.VITE_BASE_URL}/admin/heatmap`
+      );
       const markerPosition = response.data.heatmapData
         .filter((point) => point.lat && point.long)
         .map((point) => [
@@ -85,6 +89,8 @@ const Heatmap = () => {
           point.culpritName,
         ]);
       setMarkerPosition(markerPosition);
+      console.log("Marker positions:", markerPosition);
+      
     } catch (error) {
       console.error("Error fetching marker data:", error);
     }
@@ -95,7 +101,7 @@ const Heatmap = () => {
   }, []);
 
   return (
-    <div className="h-[100vh] w-full relative">
+    <div className="h-[70vh] relative">
       {/* Checkbox UI */}
       <div className="absolute z-[1000] top-4 right-4 bg-white p-3 rounded shadow-md">
         <label className="flex items-center space-x-2">
