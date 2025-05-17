@@ -25,7 +25,7 @@ function Login() {
       if (r.status === 200) {
         localStorage.setItem("token", r.data.token);
         localStorage.setItem("userId", r.data.user._id);
-        navigate("/adminLanding");
+        navigate("/admin");
         toast.success("Logged in successfully");
       } else {
         toast.error(r.data.message);

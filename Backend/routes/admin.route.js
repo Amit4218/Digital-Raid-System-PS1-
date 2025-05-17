@@ -46,6 +46,59 @@ router.post("/login", async (req, res) => {
   }
 });
 
+//planned raid create route
+
+router.post("/createRaid", async (req, res) => {
+  const {
+    raidType,
+    createdBy,
+    inCharge,
+    culprits,
+    location, // Expecting location object
+    description,
+    isUnplannedRequest,
+    unplannedRequestDetails,
+    warrant,
+  } = req.body;
+
+  try {
+    // Prepare location object with null coordinates if not provided
+    const raidLocation = {
+      address: location.address,
+      coordinates: location.coordinates || {
+        longitude: null,
+        latitude: null,
+      },
+    };
+
+    const raid = new Raid({
+      raidType,
+      status: "pending",
+      createdBy,
+      inCharge,
+      culprits,
+      location: raidLocation,
+      description,
+      scheduledDate: new Date(),
+      isUnplannedRequest: isUnplannedRequest || false,
+      unplannedRequestDetails: isUnplannedRequest
+        ? unplannedRequestDetails
+        : null,
+      warrant: warrant || null,
+    });
+
+    await raid.save();
+    res.status(201).json({ message: "Raid created successfully", raid });
+  } catch (error) {
+    console.error("Error creating raid:", error);
+    res.status(500).json({
+      message: "Error creating raid",
+      error: error.message,
+      details: error.errors,
+    });
+  }
+});
+
 //raid data fetch route for heatmap
 
 router.get("/heatmap", async (req, res) => {
