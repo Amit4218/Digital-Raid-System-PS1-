@@ -141,9 +141,9 @@ const Notification = () => {
 
       {/* Notification Dropdown */}
       {showNotifications && (
-        <div className="absolute right-0 mt-2 w-72 bg-white rounded-md shadow-lg overflow-hidden z-50">
+        <div className="absolute right-0 mt-2 w-72 h-80 bg-white rounded-md shadow-lg overflow-y-scroll no-scrollbar z-50">
           <div className="py-1">
-            <div className="px-4 py-2 border-b border-gray-200 bg-gray-50">
+            <div className="px-4 py-2 border-b border-gray-200 bg-gray-50 sticky -top-1">
               <p className="text-sm font-medium text-gray-700">Notifications</p>
             </div>
             {notifications.length > 0 ? (
@@ -173,10 +173,10 @@ const Notification = () => {
               </div>
             )}
             {notifications.length > 0 && (
-              <div className="px-4 py-2 border-t border-gray-200 bg-gray-50 text-center">
+              <div className="px-4 py-2 border-t border-gray-200 bg-gray-50 text-center sticky bottom-0">
                 <button
                   onClick={markAllAsRead}
-                  className="text-xs text-blue-600 hover:text-blue-800"
+                  className="text-xs text-blue-600 hover:text-blue-800 "
                 >
                   Mark all as read
                 </button>
