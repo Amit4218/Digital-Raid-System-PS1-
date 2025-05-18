@@ -255,41 +255,12 @@ import Navbar from "../components/Navbar";
 
 function RaidPage() {
   const navigate = useNavigate();
-
   const [loading, setLoading] = useState(false);
-  const [latitude, setLatitude] = useState(null);
-  const [longitude, setLongitude] = useState(null);
-  // const [bluetoothPopupVisible, setBluetoothPopupVisible] = useState(false);
   const [raids, setRaids] = useState([]);
-  const [selectedRaidId, setSelectedRaidId] = useState(null);
 
-  const knownDeviceName = "Test_bluetooth";
 
-  //   // Get user location on mount
 
-  useEffect(() => {
-    function getLocation() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            setLatitude(position.coords.latitude);
-            setLongitude(position.coords.longitude);
-            updateCoordinates();
-          },
-          () => {
-            toast.error("Please enable location to proceed & Refresh the page");
-          }
-        );
-      } else {
-        toast.info("Geolocation is not supported by this browser");
-      }
-    }
-
-    getLocation();
-  }, []);
-
-  //   // Fetch all raids
-
+  // Fetch all raids
   useEffect(() => {
     const getRaids = async () => {
       try {
@@ -302,7 +273,6 @@ function RaidPage() {
           }
         );
         setRaids(res.data.raids);
-        console.log(res.data);
       } catch (error) {
         console.error("Error fetching raids:", error);
         toast.error("Failed to fetch raids");
@@ -312,7 +282,6 @@ function RaidPage() {
     getRaids();
   }, []);
 
-  // Raid button logic
 
   function canStartRaid(raid) {
     if (raid.status === "completed" || raid.status === "active") {
@@ -326,32 +295,18 @@ function RaidPage() {
     return raid.status === "pending";
   }
 
-  console.log(raids);
-
-  //   // Update coordinates API
-
-  const updateCoordinates = async () => {
-    const token = localStorage.getItem("token");
-    const data = { token, latitude, longitude };
-
-    try {
-      const res = await axios.put(
-        `${import.meta.env.VITE_BASE_URL}/user/update-cordinates`,
-        data
-      );
-    } catch (error) {
-      console.error("Failed to update coordinates:", error);
-      toast.error("Failed to update location");
-      return false;
-    }
+  const handleStartRaid = (raidId) => {
+    navigate("/permission", { state: { raidId } });
   };
+
+  if (loading) return <Loading />;
 
   return (
     <>
       <Navbar />
       <div className="p-4 mx-auto max-w-6xl">
         <div className="bg-zinc-800 border border-amber-300 rounded-xl mt-10 p-4 min-h-[300px] text-white shadow-lg overflow-x-auto">
-          {/* Desktop Header (hidden on mobile) */}
+          {/* Desktop Header */}
           <div className="hidden md:grid grid-cols-12 font-semibold border-b border-amber-200/50 pb-3 mb-4 text-amber-200">
             <span className="col-span-3">Raid ID</span>
             <span className="col-span-2">Raid Incharge</span>
@@ -372,7 +327,7 @@ function RaidPage() {
                 key={raid._id || idx}
                 className="flex flex-col md:grid md:grid-cols-12 gap-2 md:gap-4 border-b border-zinc-700/50 py-4 text-sm hover:bg-zinc-700/40 transition-colors last:border-b-0"
               >
-                {/* Mobile labels & values */}
+                {/* Mobile view */}
                 <div className="md:hidden space-y-2">
                   <div>
                     <span className="text-amber-200">ID: </span>
@@ -402,7 +357,7 @@ function RaidPage() {
                   </div>
                 </div>
 
-                {/* Desktop view (hidden on mobile) */}
+                {/* Desktop view */}
                 <span className="hidden md:block col-span-3 font-mono text-xs text-amber-100/80 break-all">
                   {raid._id || "N/A"}
                 </span>
@@ -418,7 +373,7 @@ function RaidPage() {
                     : raid.raidType || "N/A"}
                 </span>
 
-                {/* Status badge - made slimmer */}
+                {/* Status */}
                 <span className="md:col-span-2 flex items-center">
                   <span
                     className={`inline-block px-2 py-[0.125rem] rounded-full text-xs font-medium ${
@@ -436,9 +391,7 @@ function RaidPage() {
                 {/* Action button */}
                 <span className="md:col-span-1">
                   <button
-                    onClick={() =>
-                      raid._id && navigate(`/raid-start-form/${raid._id}`)
-                    }
+                    onClick={() => handleStartRaid(raid._id)}
                     className={`w-full px-2 -ml-6 py-1.5 rounded-md text-xs font-medium transition-colors ${
                       canStartRaid(raid)
                         ? "bg-amber-600/20 text-amber-400 hover:bg-amber-600/30"

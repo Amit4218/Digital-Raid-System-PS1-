@@ -125,51 +125,32 @@ router.put("/update-cordinates", async (req, res) => {
 // Create Unplanned Raid
 
 router.post("/create-raid", async (req, res) => {
-  const { inCharge, culprits, location, description, scheduledDate, userId } =
-    req.body;
+  const { culprits, location, description, scheduledDate, userId } = req.body;
 
   try {
-    // find the officer
+    // find the officer // who created the unplaned raid
     const user = await User.findById(userId);
 
     // Validate required fields
-    if (!inCharge || !culprits || !location || !description) {
+    if (!culprits || !location || !description) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
     // Validate culprit details
-    if (
-      !culprits.length ||
-      !culprits[0].name ||
-      !culprits[0].identification ||
-      !culprits[0].description
-    ) {
+    if (!culprits.length || !culprits[0].name) {
       return res.status(400).json({ message: "Invalid culprit details" });
     }
 
-    // Validate location coordinates
-    // if (!location.coordinates.longitude || !location.coordinates.latitude) {
-    //   return res.status(400).json({ message: "Missing coordinates" });
-    // }
-
     const newRaid = await Raid.create({
-      raidType: ["unplanned"],
-      status: "pending",
-      inCharge,
+      inCharge: user.username,
+      inchargeId: user._id,
       culprits,
       location: {
         address: location.address,
-        hotspot: location.hotspot || false,
       },
       scheduledDate: scheduledDate || Date.now(),
       description,
-      isUnplannedRequest: true,
-      unplannedRequestDetails: {
-        approvalStatus: "pending",
-        requestDate: new Date(),
-      },
-      // You'll need to add authentication middleware to get createdBy
-      createdBy: user._id, // Replace with actual user ID from auth
+      createdBy: user._id,
     });
 
     res.status(201).json({
@@ -224,11 +205,9 @@ router.post("/raid/:id", async (req, res) => {
   try {
     const raid = await Raid.findById(id);
 
-    const user = await User.findOne(raid.inCharge);
+    // let inChargeName = user.username;
 
-    let inChargeName = user.username;
-
-    res.status(200).json({ message: "success", info: { raid, inChargeName } });
+    res.status(200).json({ message: "success", info: { raid } });
   } catch (error) {
     return res.status(500).json({ message: "something went wrong", error });
   }

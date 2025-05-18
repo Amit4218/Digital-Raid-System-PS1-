@@ -3,9 +3,9 @@ import mongoose from "mongoose";
 const raidSchema = new mongoose.Schema(
   {
     raidType: {
-      type: [String],
+      type: String,
       enum: ["planned", "unplanned"],
-      required: true,
+      default: "unplanned",
     }, // 'planned' or 'unplanned'
     status: {
       type: String,
@@ -20,6 +20,11 @@ const raidSchema = new mongoose.Schema(
     inCharge: {
       type: String,
       required: true,
+    },
+    inchargeId: {
+      type: mongoose.Schema.ObjectId,
+      ref: "user",
+      required: true,
     }, // Reference to Users (raid officer)
     culprits: [
       {
@@ -29,11 +34,11 @@ const raidSchema = new mongoose.Schema(
         },
         identification: {
           type: Number,
-          required: true,
+          default: null,
         }, // ID number or other identifier
         description: {
           type: String,
-          required: true,
+          default: null,
         },
       },
     ],
@@ -85,7 +90,7 @@ const raidSchema = new mongoose.Schema(
     },
     isUnplannedRequest: {
       type: Boolean,
-      default: false,
+      default: true,
     }, // For unplanned raids
     unplannedRequestDetails: {
       approvedBy: {
@@ -95,7 +100,7 @@ const raidSchema = new mongoose.Schema(
       }, // Reference to Users
       requestDate: {
         type: Date,
-        default: null,
+        default: Date.now(),
       },
       approvalStatus: {
         type: String,

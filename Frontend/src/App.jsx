@@ -6,6 +6,7 @@ import Register from "./pages/Register";
 import RaidPage from "./pages/RaidPage";
 import Unplanned from "./pages/Unplanned";
 import Planned from "./pages/Planned";
+import Permission from "./pages/Permission";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/raidPage" element={<RaidPage />} />
         <Route path="/unplanned-raid" element={<Unplanned />} />
+        <Route path="/permission" element={<Permission />} />
         <Route path="/raid-start-form/:id" element={<Planned />} />
       </Routes>
       <ToastContainer theme="black" transition={Slide} autoClose={1000} />
