@@ -7,7 +7,7 @@ import SearchCriminal from "../components/SearchCriminal";
 import { toast } from "react-toastify";
 
 function Planned() {
-  const { id } = useParams();
+  const { id, userId } = useParams();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [info, setInfo] = useState(null);
