@@ -33,7 +33,7 @@ const RaidStatusGraph = () => {
         const response = await axios.get(
           `${import.meta.env.VITE_BASE_URL}/admin/statusData`
         );
-        console.log("API response data:", response.data);
+     
 
         if (
           !response.data?.statusData ||

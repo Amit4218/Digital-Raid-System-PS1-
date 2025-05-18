@@ -152,7 +152,6 @@ router.post("/create-raid", async (req, res) => {
       culprits,
       location: {
         address: location.address,
-        hotspot: location.hotspot || false,
       },
       scheduledDate: scheduledDate || Date.now(),
       description,

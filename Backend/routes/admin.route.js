@@ -102,6 +102,39 @@ router.post("/createRaid", async (req, res) => {
 
 
 
+// To get name of all the raid officer
+
+router.get("/get-raid-officers", async (req, res) => {
+  const SECRET_ACCESS_KEY = req.headers["x-access-key"];
+
+  try {
+    if (!SECRET_ACCESS_KEY) {
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: No access key provided" });
+    }
+
+    if (SECRET_ACCESS_KEY !== process.env.SECRET_ACCESS_KEY) {
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: Invalid access key" });
+    }
+
+    const users = await User.find().select("-password");
+
+    return res.status(200).json({
+      message: "Data fetched successfully",
+      users,
+    });
+  } catch (error) {
+    console.error("Error fetching raids:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+
+
+
 //raid data fetch route for heatmap
 
 router.get("/heatmap", async (req, res) => {
@@ -147,6 +180,35 @@ router.get("/statusData", async (req, res) => {
   }
 });
 
+// To get all the raids
+router.get("/getRaids", async (req, res) => {
+  const SECRET_ACCESS_KEY = req.headers["x-access-key"];
+
+  try {
+    if (!SECRET_ACCESS_KEY) {
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: No access key provided" });
+    }
+
+    if (SECRET_ACCESS_KEY !== process.env.SECRET_ACCESS_KEY) {
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: Invalid access key" });
+    }
+
+    const raids = await Raid.find();
+    console.log(raids);
+    res.status(200).json({
+      message: "Data fetched successfully",
+      raids,
+      
+    });
+  } catch (error) {
+    console.error("Error fetching officers:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
 
 
 export default router;
