@@ -3,60 +3,123 @@ import { toast } from "react-toastify";
 import handleVideoUpload from "../utils/UploadVideo";
 
 function UploadVideo() {
-  const [video, setVideo] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
-
-  // handels the file input and helps extract La & long from the image
-  // with image upload to the cloud
+  const [uploadedVideos, setUploadedVideos] = useState([]);
 
   const fileChangeHandler = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    setVideo(file);
+    setIsUploading(true);
+
     try {
-      // Extract GPS data
+      // Process all selected files
+      for (const file of files) {
+        try {
+          const videoUrl = await handleVideoUpload(file);
 
-      // Upload the image and wait for completion
-      try {
-        const videoUrl = await handleVideoUpload(file);
-        console.log("Image uploaded to:", videoUrl);
-        toast.success("Video uploaded sucessfully");
-        setVideo(null); // Clear the image state after successful upload
-      } catch (uploadError) {
-        console.error("Upload failed:", uploadError);
-        // Error toast is already shown by UploadImg
+          setUploadedVideos((prev) => [
+            ...prev,
+            {
+              url: videoUrl,
+              timestamp: new Date().toISOString(),
+              name: file.name,
+              size: (file.size / (1024 * 1024)).toFixed(2) + " MB",
+              type: file.type,
+            },
+          ]);
+
+          toast.success(`${file.name} uploaded successfully!`);
+        } catch (uploadError) {
+          console.error(`Upload failed for ${file.name}:`, uploadError);
+          toast.error(`Failed to upload ${file.name}`);
+        }
       }
     } catch (err) {
-      console.error("Error processing image:", err);
-      setError("Failed to extract GPS data from image");
-      toast.error("Failed to process image");
+      console.error("Error processing videos:", err);
+      toast.error("Failed to process videos");
+    } finally {
+      setIsUploading(false);
+      fileInputRef.current.value = ""; // Reset file input
     }
   };
 
-  return (
-    <>
-      <div className="mt-8 p-6 bg-zinc-700 rounded-lg">
-        <h3 className="text-xl font-semibold mb-4">Upload Raid video</h3>
+  const deleteVideo = (index) => {
+    setUploadedVideos((prev) => prev.filter((_, i) => i !== index));
+    toast.info("Video removed");
+  };
 
-        <label className="flex flex-col items-center px-4 py-6 bg-zinc-600 rounded-lg border-2 border-dashed border-zinc-500 cursor-pointer hover:bg-zinc-500 transition">
-          <input
-            type="file"
-            accept="video/*"
-            className="hidden"
-            ref={fileInputRef}
-            onChange={fileChangeHandler}
-            disabled={video ? true : false}
-          />
-          <span className="mb-2">
-            {video ? video.name : "Click to select an video"}
-          </span>
-          <span className="text-sm text-zinc-300">
-            {video ? "Change file" : "Upload raid video with GPS data"}
-          </span>
-        </label>
-      </div>
-    </>
+  return (
+    <div className="mt-8 p-6 bg-zinc-700 rounded-lg">
+      <h3 className="text-xl font-semibold mb-4">Upload Raid Videos</h3>
+
+      <label
+        className={`flex flex-col items-center px-4 py-6 bg-zinc-600 rounded-lg border-2 border-dashed border-zinc-500 cursor-pointer hover:bg-zinc-500 transition ${
+          isUploading ? "opacity-50" : ""
+        }`}
+      >
+        <input
+          type="file"
+          accept="video/*"
+          className="hidden"
+          ref={fileInputRef}
+          onChange={fileChangeHandler}
+          multiple
+          disabled={isUploading}
+        />
+        <span className="mb-2">
+          {isUploading ? "Uploading..." : "Click to select videos"}
+        </span>
+        <span className="text-sm text-zinc-300">
+          {isUploading ? "Please wait..." : "Upload raid videos"}
+        </span>
+      </label>
+
+      {isUploading && (
+        <div className="mt-4 text-center text-zinc-300">
+          Uploading videos, please wait...
+        </div>
+      )}
+
+      {uploadedVideos.length > 0 && (
+        <div className="mt-6">
+          <h4 className="text-lg font-medium mb-3">
+            Uploaded Videos ({uploadedVideos.length})
+          </h4>
+          <div className="space-y-3">
+            {uploadedVideos.map((video, index) => (
+              <div
+                key={index}
+                className="p-3 bg-zinc-600 rounded flex justify-between items-start"
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="truncate font-medium">{video.name}</p>
+                  <p className="text-sm text-zinc-300 truncate">{video.size}</p>
+                  <p className="text-xs text-zinc-400 truncate">{video.url}</p>
+                </div>
+                <div className="flex space-x-2">
+                  <a
+                    href={video.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-2 py-1 bg-blue-600 rounded text-sm hover:bg-blue-700 transition"
+                  >
+                    View
+                  </a>
+                  <button
+                    onClick={() => deleteVideo(index)}
+                    className="px-2 py-1 bg-red-600 rounded text-sm hover:bg-red-700 transition"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
