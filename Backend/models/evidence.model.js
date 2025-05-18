@@ -9,7 +9,7 @@ const evidenceSchema = new mongoose.Schema(
     exhibitType: {
       type: [String],
       enum: ["item", "document", "digital"],
-    }, // 'item', 'document', 'digital'
+    },
     category: {
       type: String,
       required: true,
@@ -54,7 +54,7 @@ const evidenceSchema = new mongoose.Schema(
         },
         hash: {
           type: String,
-          default:null
+          default: null,
         },
       },
       metadata: {
@@ -68,11 +68,11 @@ const evidenceSchema = new mongoose.Schema(
         },
         timestamp: {
           type: Date,
-          default:null
+          default: null,
         },
         deviceInfo: {
           type: String,
-          default:null
+          default: null,
         },
       },
       uploadedAt: {
@@ -85,19 +85,19 @@ const evidenceSchema = new mongoose.Schema(
       {
         transferredFrom: {
           type: mongoose.Schema.ObjectId,
-          required: true,
-        }, // Reference to Users
+          default: null,
+        },
         transferredTo: {
           type: mongoose.Schema.ObjectId,
-          required: true,
-        }, // Reference to Users
+          default: null,
+        },
         transferDate: {
           type: Date,
-          default: Date.now(),
+          default: null,
         },
         transferPurpose: {
           type: String,
-          required: true,
+          default: null,
         },
         digitalSignatures: {
           fromSignature: {
@@ -130,11 +130,11 @@ const evidenceSchema = new mongoose.Schema(
     disposalDetails: {
       method: {
         type: String,
-        required: true,
+        default: null,
       },
       disposedBy: {
         type: mongoose.Schema.ObjectId,
-        required: true,
+        default: null,
       }, // Reference to Users
       disposalDate: {
         type: Date,

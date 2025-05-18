@@ -18,8 +18,7 @@ const raidSchema = new mongoose.Schema(
       required: true,
     }, // Reference to Users (head official)
     inCharge: {
-      type: mongoose.Schema.ObjectId,
-      ref: "user",
+      type: String,
       required: true,
     }, // Reference to Users (raid officer)
     culprits: [
