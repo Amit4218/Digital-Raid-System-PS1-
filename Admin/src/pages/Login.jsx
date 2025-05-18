@@ -38,7 +38,7 @@ function Login() {
   return (
     <div className="h-screen flex items-center justify-center bg-zinc-900">
       <form id="login-form" onSubmit={loginHandler}>
-        <div className="col border border-amber-200 h-60 text-white p-5">
+        <div className="flex flex-col gap-10 w-96 border border-amber-200 h-96 text-white p-10">
           <div className="-mt-2">
             <label className="block text-center" htmlFor="userName">
               UserName
@@ -65,7 +65,7 @@ function Login() {
               placeholder="Enter Your Credentials"
             />
           </div>
-          <div className="w-62 mt-2 bg-blue-400 p-2 rounded-md text-center">
+          <div className="w-full hover:cursor-pointer mt-2 bg-blue-400 p-2 rounded-md text-center">
             <button className=" w-full hover:cursor-pointer" type="submit">Submit</button>
           </div>
         </div>

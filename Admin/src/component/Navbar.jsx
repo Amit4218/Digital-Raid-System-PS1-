@@ -30,7 +30,7 @@ const Navbar = () => {
       <div className="w-[60%] flex  gap-10">
         {" "}
         {/* Removed fixed width and corrected gap class */}
-        <Link to="/dashboard">
+        <Link to="/admin">
           {" "}
           {/* Added proper Link wrapper */}
           <button className="px-6 py-2 text-white font-semibold rounded-full border border-white hover:bg-white hover:text-[#1f3143] shadow-md">
@@ -40,6 +40,11 @@ const Navbar = () => {
         <Link to="/admin/raids">
           <button className="px-6 py-2 text-white font-semibold rounded-full border border-white hover:bg-white hover:text-[#1f3143] shadow-md">
             Raids
+          </button>
+        </Link>
+        <Link to="/admin/unplannedRaids">
+          <button className="px-6 py-2 text-white font-semibold rounded-full border border-white hover:bg-white hover:text-[#1f3143] shadow-md">
+            Unplanned Raid Requests
           </button>
         </Link>
       </div>

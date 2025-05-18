@@ -1,35 +1,118 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Notification = () => {
+  const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications] = useState([
-    {
-      id: 1,
-      message: "New raid scheduled for tomorrow",
-      time: "2 hours ago",
-      read: false,
-    },
-    {
-      id: 2,
-      message: "3 pending raids need approval",
-      time: "1 day ago",
-      read: false,
-    },
-    {
-      id: 3,
-      message: "System maintenance scheduled",
-      time: "2 days ago",
-      read: true,
-    },
-  ]);
-  const [unreadCount, setUnreadCount] = useState(
-    notifications.filter((n) => !n.read).length
-  );
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const calculateTimeDifference = (dateString) => {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diffInSeconds = Math.floor((now - date) / 1000);
+
+    if (diffInSeconds < 60) return `${diffInSeconds} seconds ago`;
+    if (diffInSeconds < 3600)
+      return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+    if (diffInSeconds < 86400)
+      return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+    return `${Math.floor(diffInSeconds / 86400)} days ago`;
+  };
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_BASE_URL}/admin/getRaids`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "x-access-key": import.meta.env.VITE_SECRET_ACCESS_KEY,
+            },
+          }
+        );
+        const data = await response.json();
+
+        // console.log("API Response:", data);
+
+        if (data.raids && Array.isArray(data.raids)) {
+          const raidNotifications = data.raids
+            .filter((raid) => raid.status === "pending") // Only show pending raids
+            .map((raid) => {
+              let message = "";
+              let time = "";
+
+              if (raid.raidType && raid.raidType.includes("unplanned")) {
+                message = `Unplanned raid needs approval: ${
+                  raid.description || "No description"
+                }`;
+                time =
+                  raid.unplannedRequestDetails?.requestDate || raid.createdAt;
+              } else {
+                message = `New raid scheduled: ${
+                  raid.description || "No description"
+                }`;
+                time = raid.scheduledDate || raid.createdAt;
+              }
+
+              return {
+                id: raid._id,
+                message,
+                time: calculateTimeDifference(time),
+                read: false,
+                raidData: raid,
+              };
+            });
+
+          console.log("Generated Notifications:", raidNotifications);
+          setNotifications(raidNotifications);
+          setUnreadCount(raidNotifications.length);
+        } else {
+          console.log("No raids data found in response");
+          setNotifications([]);
+          setUnreadCount(0);
+        }
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+        setNotifications([]);
+        setUnreadCount(0);
+      }
+    };
+
+    fetchNotifications();
+
+    // Optional: Set up refresh interval (e.g., every 5 minutes)
+    const interval = setInterval(fetchNotifications, 300000);
+    return () => clearInterval(interval);
+  }, []);
 
   const markAllAsRead = () => {
-    notifications.forEach((n) => (n.read = true));
+  
+    setNotifications((prevNotifications) =>
+      prevNotifications.map((notification) => ({ ...notification, read: true }))
+    );
     setUnreadCount(0);
   };
+
+  const markAsRead = (id) => {
+    setNotifications((prevNotifications) => {
+      const updatedNotifications = prevNotifications.map((notification) => {
+        if (notification.id === id) {
+          // Check if this is an unplanned raid before navigating
+          if (notification.raidData.raidType.includes("unplanned")) {
+            navigate("/admin/unplannedRaids");
+          }
+          return { ...notification, read: true };
+        }
+        return notification;
+      });
+      return updatedNotifications;
+    });
+    setUnreadCount((prev) => prev - 1);
+  };
+
 
   return (
     <div className="relative">
@@ -67,6 +150,7 @@ const Notification = () => {
               notifications.map((notification) => (
                 <div
                   key={notification.id}
+                  onClick={() => markAsRead(notification.id)}
                   className={`px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 ${
                     !notification.read ? "bg-blue-50" : ""
                   }`}
@@ -85,17 +169,19 @@ const Notification = () => {
               ))
             ) : (
               <div className="px-4 py-3 text-center text-sm text-gray-500">
-                No new notifications
+                No pending raid notifications
               </div>
             )}
-            <div className="px-4 py-2 border-t border-gray-200 bg-gray-50 text-center">
-              <button
-                onClick={markAllAsRead}
-                className="text-xs text-blue-600 hover:text-blue-800"
-              >
-                Mark all as read
-              </button>
-            </div>
+            {notifications.length > 0 && (
+              <div className="px-4 py-2 border-t border-gray-200 bg-gray-50 text-center">
+                <button
+                  onClick={markAllAsRead}
+                  className="text-xs text-blue-600 hover:text-blue-800"
+                >
+                  Mark all as read
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

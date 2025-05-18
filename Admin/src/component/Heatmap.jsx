@@ -89,7 +89,6 @@ const Heatmap = () => {
           point.culpritName,
         ]);
       setMarkerPosition(markerPosition);
-      console.log("Marker positions:", markerPosition);
       
     } catch (error) {
       console.error("Error fetching marker data:", error);
