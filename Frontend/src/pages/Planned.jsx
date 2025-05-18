@@ -4,6 +4,7 @@ import UploadImage from "../components/UploadImage";
 import axios from "axios";
 import UploadVideo from "../components/UploadVideo";
 import SearchCriminal from "../components/SearchCriminal";
+import { toast } from "react-toastify";
 
 function Planned() {
   const { id } = useParams();
@@ -29,6 +30,18 @@ function Planned() {
     };
     getRaidInfo();
   }, [id]);
+
+  const notify = (e) => {
+    e.preventDefault();
+    const approved = prompt(
+      "Approve Raid ? No changes can be made afterwords ! Please Type Confirm "
+    );
+    if (approved === "Confirm") {
+      toast.success("Raid Submitted");
+    } else {
+      toast.info("Not Approved");
+    }
+  };
 
   if (loading) return <div>Loading raid information...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -58,6 +71,16 @@ function Planned() {
         </div>
         <div className="">
           <SearchCriminal />
+        </div>
+        <div className="flex justify-center items-center">
+          <form>
+            <button
+              className="bg-blue-500 mt-5 px-3 py-3 rounded"
+              onClick={notify}
+            >
+              Approve
+            </button>
+          </form>
         </div>
       </div>
     </div>
