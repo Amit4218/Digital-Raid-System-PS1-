@@ -7,9 +7,7 @@ function UploadImage() {
   const [image, setImage] = useState(null);
   const fileInputRef = useRef(null);
   const [gpsData, setGpsData] = useState(null);
-
-  // handels the file input and helps extract La & long from the image
-  // with image upload to the cloud
+  const [uploadedImages, setUploadedImages] = useState([]); // Changed from imagesUrls to uploadedImages
 
   const fileChangeHandler = async (e) => {
     const file = e.target.files[0];
@@ -22,16 +20,31 @@ function UploadImage() {
       setGpsData(data);
 
       if (data) {
-        console.log("GPS Data:", data);
+        // console.log("GPS Data:", data);
 
-        // Upload the image and wait for completion
+        // Upload the image
         try {
           const imageUrl = await UploadImg(file);
-          console.log("Image uploaded to:", imageUrl);
-          setImage(null); // Clear the image state after successful upload
+          // console.log("Image uploaded to:", imageUrl);
+
+          // Add the new image to the array of uploaded images
+          setUploadedImages((prevImages) => [
+            ...prevImages,
+            {
+              url: imageUrl,
+              gpsData: data,
+              timestamp: new Date().toISOString(),
+              name: file.name,
+            },
+          ]);
+          setImage(null); // Clear the current image
+          fileInputRef.current.value = ""; // Reset file input
+          console.log(uploadedImages);
+
+          toast.success("Image uploaded successfully!");
         } catch (uploadError) {
           console.error("Upload failed:", uploadError);
-          // Error toast is already shown by UploadImg
+          toast.error("Image upload failed");
         }
       } else {
         console.log("No GPS data found");
@@ -39,7 +52,6 @@ function UploadImage() {
       }
     } catch (err) {
       console.error("Error processing image:", err);
-      setError("Failed to extract GPS data from image");
       toast.error("Failed to process image");
     }
   };
@@ -70,7 +82,35 @@ function UploadImage() {
             <p>Extracted GPS Coordinates:</p>
             <p>Latitude: {gpsData.latitude}</p>
             <p>Longitude: {gpsData.longitude}</p>
-            {/* You could add a map here using these coordinates */}
+          </div>
+        )}
+
+        {/* Display uploaded images */}
+        {uploadedImages.length > 0 && (
+          <div className="mt-6">
+            <h4 className="text-lg font-medium mb-3">Uploaded Images</h4>
+            <div className="space-y-3">
+              {uploadedImages.map((img, index) => (
+                <div key={index} className="p-3 bg-zinc-600 rounded">
+                  <p className="truncate">
+                    <strong>Name:</strong> {img.name}
+                  </p>
+                  <p className="text-sm text-zinc-300 truncate">
+                    <strong>
+                      URL:{" "}
+                      <a target="_blank" href={img.url}>
+                        {img.url}
+                      </a>{" "}
+                    </strong>{" "}
+                    {}
+                  </p>
+                  <p className="text-xs text-zinc-400">
+                    <strong>Coordinates:</strong> {img.gpsData.latitude},{" "}
+                    {img.gpsData.longitude}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
