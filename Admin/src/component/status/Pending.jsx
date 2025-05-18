@@ -39,9 +39,7 @@ const Pending = ({
         </div>
       </div>
       
-      <div>
-        <button className="bg-[#213448] text-white p-2 rounded-xl  fixed bottom-4 right-4">Create new raid</button>
-      </div>
+      
     </>
   );
 };
