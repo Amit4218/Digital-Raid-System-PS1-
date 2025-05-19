@@ -5,6 +5,7 @@ import User from "../models/user.model.js";
 import Sessions from "../models/session.model.js";
 import Raid from "../models/raid.model.js";
 import Crimainal from "../models/criminal.model.js";
+import Licence from "../models/licence.model.js";
 
 const router = express.Router();
 
@@ -125,14 +126,20 @@ router.put("/update-cordinates", async (req, res) => {
 // Create Unplanned Raid
 
 router.post("/create-raid", async (req, res) => {
-  const { culprits, location, description, scheduledDate, userId } = req.body;
+  const { inChargeId, culprits, location, description, scheduledDate, userId } =
+    req.body;
 
   try {
-    // find the officer // who created the unplaned raid
-    const user = await User.findById(userId);
+    // find the officer
+    const user = await User.findById(inChargeId);
 
-    // Validate required fields
+    if (!user) {
+      return res.status(404).json({ message: "unauthorized" });
+    }
+    console.log(user);
+
     if (!culprits || !location || !description) {
+      // Validate required fields
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -143,14 +150,14 @@ router.post("/create-raid", async (req, res) => {
 
     const newRaid = await Raid.create({
       inCharge: user.username,
-      inchargeId: user._id,
+      inchargeId: inChargeId,
       culprits,
       location: {
         address: location.address,
       },
       scheduledDate: scheduledDate || Date.now(),
       description,
-      createdBy: user._id,
+      createdBy: userId,
     });
 
     res.status(201).json({
@@ -207,7 +214,7 @@ router.post("/raid/:id", async (req, res) => {
 
     // let inChargeName = user.username;
 
-    res.status(200).json({ message: "success", info: { raid } });
+    res.status(200).json({ message: "success", info: raid });
   } catch (error) {
     return res.status(500).json({ message: "something went wrong", error });
   }
@@ -323,8 +330,70 @@ router.get("/search-criminal/:criminalId", async (req, res) => {
 
     res.status(200).json({ message: "success", criminal: { criminal } });
   } catch (error) {
-    console.error("criminal route error", error);
+    // console.error("criminal route error", error);
     res.status(500).json({ message: "something went wrong" });
+  }
+});
+
+// create Licence // This is also a temporary route
+
+router.post("/create-licence", async (req, res) => {
+  const {
+    licenceId,
+    licenceHolder,
+    licenceFor,
+    licenceRenewalDate,
+    licencePublishDate,
+  } = req.body;
+
+  try {
+    if (
+      !licenceHolder ||
+      !licenceFor ||
+      !licenceRenewalDate ||
+      !licencePublishDate ||
+      !licenceId
+    ) {
+      return res.status(400).json({ message: "please fill all the feilds" });
+    }
+
+    const licence = await Licence.create({
+      licenceId,
+      licenceHolder,
+      licenceFor,
+      licenceRenewalDate,
+      licencePublishDate,
+    });
+
+    res.status(200).json({ message: "Created", licence });
+  } catch (error) {
+    console.error("Licence", error);
+    res.status(500).json({ message: "Something went wrong" });
+  }
+});
+
+// Get Licence // This is also a temporary route
+
+router.get("/licence/:licenceId", async (req, res) => {
+  const { licenceId } = req.params;
+
+  try {
+    if (!licenceId) {
+      return res.status(400).json({ message: "Please provide licenceId!" });
+    }
+
+    const licence = await Licence.findOne({ licenceId });
+
+    if (!licence) {
+      return res
+        .status(400)
+        .json({ message: "The licence doesn't exist in the DB" });
+    }
+
+    return res.status(200).json({ message: "success", licence });
+  } catch (error) {
+    console.error("Licence route error:", error);
+    return res.status(500).json({ message: "Something went wrong" });
   }
 });
 
