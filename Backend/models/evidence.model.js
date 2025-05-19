@@ -10,6 +10,10 @@ const evidenceSchema = new mongoose.Schema(
       type: [String],
       enum: ["item", "document", "digital"],
     },
+    exhibitId: {
+      type: String,
+      required: true,
+    },
     category: {
       type: String,
       required: true,
