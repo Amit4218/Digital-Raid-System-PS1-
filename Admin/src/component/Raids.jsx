@@ -3,7 +3,7 @@ import Pending from './status/Pending'
 import Active from './status/Active'
 import Completed from './status/Completed'
 import Approved from './status/Approved'
-import { Navigate, useNavigate } from 'react-router-dom'
+import {  useNavigate } from 'react-router-dom'
 
 function Raids() {
   const navigate = useNavigate()
