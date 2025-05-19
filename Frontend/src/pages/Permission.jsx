@@ -1,12 +1,18 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import { toast } from "react-toastify";
+import axios from "axios";
 
 function Permission() {
   const location = useLocation();
   const navigate = useNavigate();
   const [latitude, setLatitude] = useState(null);
   const [longitude, setLongitude] = useState(null);
+  const [locationEnabled, setLocationEnabled] = useState(false);
+  const [bluetoothEnabled, setBluetoothEnabled] = useState(false);
+  const knownDeviceName = "Test_bluetooth";
+
   const { raidId } = location.state || {};
 
   // Get user location on mount
@@ -17,14 +23,16 @@ function Permission() {
           (position) => {
             setLatitude(position.coords.latitude);
             setLongitude(position.coords.longitude);
-            updateCoordinates();
+            setLocationEnabled(true);
           },
           () => {
             toast.error("Please enable location to proceed & Refresh the page");
+            setLocationEnabled(false);
           }
         );
       } else {
         toast.info("Geolocation is not supported by this browser");
+        setLocationEnabled(false);
       }
     }
 
@@ -41,9 +49,53 @@ function Permission() {
         `${import.meta.env.VITE_BASE_URL}/user/update-cordinates`,
         data
       );
+      return true;
     } catch (error) {
       console.error("Failed to update coordinates:", error);
       toast.error("Failed to update location");
+      return false;
+    }
+  };
+
+  const scanBluetooth = async () => {
+    if (!navigator.bluetooth) {
+      toast.error("Web Bluetooth API not supported in this browser.");
+      return;
+    }
+
+    try {
+      const device = await navigator.bluetooth.requestDevice({
+        acceptAllDevices: true,
+      });
+
+      console.log("Found device:", device.name);
+
+      if (device.name === knownDeviceName) {
+        toast.success(`Connected to ${device.name}`);
+        setBluetoothEnabled(true);
+
+        const updated = await updateCoordinates();
+        if (updated) {
+          toast.success("Location updated successfully");
+          // Don't navigate here, let the confirm button handle it
+        }
+      } else {
+        toast.error("Unknown device. Access denied.");
+        setBluetoothEnabled(false);
+      }
+    } catch (error) {
+      console.error("Bluetooth Error:", error);
+      toast.error("Bluetooth scan failed or was cancelled");
+      setBluetoothEnabled(false);
+    }
+  };
+
+  const handleConfirm = async () => {
+    if (locationEnabled && bluetoothEnabled) {
+      toast.success("Raid Started");
+      navigate(`/raid-start-form/${raidId}`);
+    } else {
+      toast.error("Please enable both location and Bluetooth to proceed");
     }
   };
 
@@ -86,8 +138,40 @@ function Permission() {
                 Permissions Required
               </h3>
               <ul className="mt-2 space-y-2 pl-5 list-disc">
-                <li>Location Access</li>
-                <li>Bluetooth Access</li>
+                <li>
+                  Location Access:{" "}
+                  {locationEnabled ? (
+                    <span className="bg-green-600 ml-5 px-3 py-1 rounded">
+                      Location acquired successfully
+                    </span>
+                  ) : (
+                    <span className="bg-red-600 ml-5 px-3 py-1 rounded">
+                      Location access required
+                    </span>
+                  )}
+                </li>
+                <li>  
+                  RFID Connection:
+                  {bluetoothEnabled ? (
+                    <div>
+                      <span className="bg-green-600 ml-5 px-3 py-1 rounded">
+                        RFID connected successfully
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="mt-2">
+                      <span className="bg-red-600 mr-3 px-3 py-1 rounded">
+                        Connect to RFID
+                      </span>
+                      <button
+                        onClick={scanBluetooth}
+                        className="bg-yellow-500 py-1 px-3 rounded hover:bg-yellow-600"
+                      >
+                        Connect Device
+                      </button>
+                    </div>
+                  )}
+                </li>
               </ul>
             </div>
 
@@ -99,11 +183,13 @@ function Permission() {
                 Cancel
               </button>
               <button
-                onClick={() => {
-                  // Handle permission confirmation
-                  alert(`Starting raid with ID: ${raidId}`);
-                }}
-                className="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700"
+                onClick={handleConfirm}
+                disabled={!locationEnabled || !bluetoothEnabled}
+                className={`px-4 py-2 text-white rounded-md ${
+                  !locationEnabled || !bluetoothEnabled
+                    ? "bg-zinc-600 hover:bg-zinc-700 cursor-not-allowed"
+                    : "bg-amber-600 hover:bg-amber-700 cursor-pointer"
+                }`}
               >
                 Confirm & Start Raid
               </button>
