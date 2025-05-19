@@ -47,6 +47,11 @@ const Navbar = () => {
             Unplanned Raid Requests
           </button>
         </Link>
+        <Link to="/admin/logs">
+          <button className="px-6 py-2 text-white font-semibold rounded-full border border-white hover:bg-white hover:text-[#1f3143] shadow-md">
+            Log Report
+          </button>
+        </Link>
       </div>
 
       {/* Right - Notifications and Logout */}

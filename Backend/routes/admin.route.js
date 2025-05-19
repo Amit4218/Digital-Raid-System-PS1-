@@ -2,8 +2,10 @@ import express from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import Raid from "../models/raid.model.js";
-import User from "../models/user.model.js"
+import User from "../models/user.model.js";
 import Sessions from "../models/session.model.js";
+import AuditLog from "../models/auditLogs.model.js";
+import HandoverRecord from "../models/handoverRecords.model.js";
 const router = express.Router();
 
 // Login Route
@@ -99,8 +101,103 @@ router.post("/createRaid", async (req, res) => {
   }
 });
 
+//creating logs report
 
+router.post("/create-log", async (req, res) => {
+  try {
+    const { action, performedBy, referenceId } = req.body;
 
+    if (!action || !performedBy || !referenceId) {
+      return res.status(400).json({
+        error: "action, performedBy, and referenceId are required.",
+      });
+    }
+
+    let changes = [];
+
+    // Handle each action type
+    switch (action) {
+      case "raid_created":
+      case "raid_submitted":
+      case "raid_approved": {
+        const raid = await Raid.findById(referenceId).lean();
+        if (!raid) {
+          return res.status(404).json({ error: "Raid not found." });
+        }
+
+        changes = [
+          { field: "raidId", oldValue: null, newValue: raid._id },
+          { field: "status", oldValue: null, newValue: raid.status || action },
+          {
+            field: "location",
+            oldValue: null,
+            newValue: raid.location || null,
+          },
+          {
+            field: "officerInCharge",
+            oldValue: null,
+            newValue: raid.inCharge || null,
+          },
+        ];
+        break;
+      }
+
+      case "handover_log": {
+        const handover = await HandoverRecord.findById(referenceId)
+          .populate("raidId")
+          .populate("exhibitIds")
+          .populate("handoverFrom")
+          .populate("handoverTo.userId")
+          .lean();
+
+        if (!handover) {
+          return res.status(404).json({ error: "Handover record not found." });
+        }
+
+        changes = [
+          { field: "raidId", oldValue: null, newValue: handover.raidId?._id },
+          {
+            field: "exhibitIds",
+            oldValue: null,
+            newValue: handover.exhibitIds,
+          },
+          {
+            field: "handoverFrom",
+            oldValue: null,
+            newValue: handover.handoverFrom?._id,
+          },
+          {
+            field: "handoverTo",
+            oldValue: null,
+            newValue: handover.handoverTo?.userId
+              ? handover.handoverTo.userId?._id
+              : handover.handoverTo.externalDetails,
+          },
+          { field: "purpose", oldValue: null, newValue: handover.purpose },
+          { field: "quantity", oldValue: null, newValue: handover.quantity },
+        ];
+        break;
+      }
+
+      default:
+        return res.status(400).json({ error: "Invalid action type." });
+    }
+
+    const auditLog = new AuditLog({
+      action,
+      performedBy,
+      changes,
+    });
+
+    await auditLog.save();
+    return res
+      .status(201)
+      .json({ message: "Audit log created successfully", auditLog });
+  } catch (error) {
+    console.error("Audit log error:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 
 // To get name of all the raid officer
 
@@ -131,9 +228,6 @@ router.get("/get-raid-officers", async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });
-
-
-
 
 //raid data fetch route for heatmap
 
@@ -202,13 +296,11 @@ router.get("/getRaids", async (req, res) => {
     res.status(200).json({
       message: "Data fetched successfully",
       raids,
-      
     });
   } catch (error) {
     console.error("Error fetching officers:", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });
-
 
 export default router;
