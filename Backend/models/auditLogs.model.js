@@ -6,17 +6,8 @@ const auditLogSchema = new Schema(
   {
     action: {
       type: String,
-      enum: ["raid_created", "report_submitted"],
+      enum: ["raid_created", "raid_submitted", "raid_approved", "handover_log"],
       required: true,
-    },
-    entityType: {
-      type: String,
-      required: true,
-    },
-    entityId: {
-      type: SchemaTypes.ObjectId,
-      required: true,
-      refPath: "entityType", // optional: resolves to the collection by entityType
     },
     performedBy: {
       type: SchemaTypes.ObjectId,
@@ -26,12 +17,6 @@ const auditLogSchema = new Schema(
     performedAt: {
       type: Date,
       default: Date.now,
-    },
-    ipAddress: {
-      type: String,
-    },
-    deviceInfo: {
-      type: String,
     },
     changes: [
       {
