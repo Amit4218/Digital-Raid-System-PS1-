@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -6,11 +6,37 @@ import Navbar from "../components/Navbar";
 
 function Unplanned() {
   const navigate = useNavigate();
+  const [officers, setofficers] = useState([]);
   const today = new Date().toISOString().split("T")[0];
+
+  // Gets all raid officer
+
+  useEffect(() => {
+    const getOfficers = async () => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}/user/get-all-raid-officers`,
+
+          {
+            headers: {
+              "x-access-key": import.meta.env.VITE_SECRET_ACCESS_KEY,
+            },
+          }
+        );
+
+        setofficers(res.data.users);
+      } catch (error) {
+        console.error("Failed to fetch officers:", error);
+      }
+    };
+
+    getOfficers();
+  }, []);
 
   // Stores all the form Data / information
 
   const [formData, setFormData] = useState({
+    inChargeId: "",
     culprits: [
       {
         name: "",
@@ -94,6 +120,36 @@ function Unplanned() {
             Unplanned Raid Request
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            {/* Raid Officer Selection */}
+            <div className="">
+              <label
+                htmlFor="officer"
+                className="block text-gray-300 text-sm font-medium mb-2"
+              >
+                Raid officer :
+              </label>
+              <select
+                id="officer"
+                name="inChargeId"
+                value={formData.inChargeId}
+                onChange={handleChange}
+                className="py-3 px-4 bg-[#3a4e66] border border-[#4a607a] rounded-md focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none w-full text-white"
+                required
+              >
+                <option value="" className="bg-[#3a4e66]">
+                  Select an officer
+                </option>
+                {officers.map((officer) => (
+                  <option
+                    key={officer._id}
+                    value={officer._id}
+                    className="bg-[#3a4e66]"
+                  >
+                    {officer.username}
+                  </option>
+                ))}
+              </select>
+            </div>
             {/* Suspect Name */}
             <div>
               <label
