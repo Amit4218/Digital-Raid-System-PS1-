@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
+import Notification from "./Notification";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -63,7 +64,9 @@ const Navbar = () => {
         </div>
 
         {/* Right - Logout */}
-        <div>
+        <div className="flex items-center gap-10 mr-4">
+          <Notification/>
+
           <button
             onClick={logoutHandler}
             className="flex items-center gap-2 px-4 py-2 bg-[#eae8cc] text-[#1f3143] rounded-md font-medium hover:bg-[#e2e0bb] transition cursor-pointer"

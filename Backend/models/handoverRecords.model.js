@@ -8,7 +8,7 @@ const handoverRecordSchema = new mongoose.Schema(
       required: true,
     }, // Reference to Raids
     exhibitIds: {
-      type: mongoose.Schema.ObjectId,
+      type: mongoose.Schema.Types.exhibitId,
       ref: "evidence",
       required: true,
     }, // Reference to Evidence

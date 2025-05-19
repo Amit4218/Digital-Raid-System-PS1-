@@ -100,7 +100,7 @@ const Heatmap = () => {
   }, []);
 
   return (
-    <div className="h-[70vh] relative">
+    <div className="h-[70vh] relative z-20">
       {/* Checkbox UI */}
       <div className="absolute z-[1000] top-4 right-4 bg-white p-3 rounded shadow-md">
         <label className="flex items-center space-x-2">
