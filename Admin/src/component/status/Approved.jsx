@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const Approved = ({
   raidId = "Raid ID",
@@ -6,6 +7,10 @@ const Approved = ({
   address = "Address",
   type = "Planned",
 }) => {
+  const navigate = useNavigate()
+  const handleApproveReview = () =>{
+    navigate(('/admin/approved-review'))
+  }
   return (
     <>
       <div className="bg-[#213448]  text-white shadow-md rounded-lg p-4 m-4 ">
@@ -33,7 +38,9 @@ const Approved = ({
             </div>
           </div>
 
-          <button className="bg-white text-[#213448] shadow-2xl font-semibold px-4 py-1 rounded-full hover:bg-blue-600 text-sm">
+          <button
+          onClick={handleApproveReview}
+          className="bg-white text-[#213448] shadow-2xl font-semibold px-4 py-1 rounded-full hover:bg-blue-600 text-sm">
             Review
           </button>
         </div>
