@@ -6,81 +6,70 @@ const handoverRecordSchema = new mongoose.Schema(
       type: mongoose.Schema.ObjectId,
       ref: "raid",
       required: true,
-    }, // Reference to Raids
-    exhibitIds:[ {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "evidence",
-      required: true,
-    }], // Reference to Evidence
-    handoverFrom: {
-      type: mongoose.Schema.ObjectId,
-      ref: "user",
-      required: true,
-    }, // Reference to Users (raid officer)
-    handoverTo: {
-      userId: {
-        type: mongoose.Schema.ObjectId,
-        ref: "user",
-        required: true,
-      }, // Reference to Users (if system user)
-      externalDetails: {
-        // If not a system user
-        name: {
-          type: String,
-          default: null,
-        },
-        department: {
-          type: String,
-          default: null,
-        },
-        designation: {
-          type: String,
-          default: null,
-        },
-        contact: {
-          type: String,
-          default: null,
-        },
-        email: {
-          type: String,
-          default: null,
-        },
-      },
     },
-    handoverDate: {
-      type: Date,
-      default: Date.now(),
-    },
-    purpose: {
-      type: String,
-      required: true,
-    },
-    quantity: {
-      type: Number,
-      required: true,
-    }, // Total items handed over
-    digitalSignatures: {
-      fromSignature: {
-        type: String,
+
+    exhibitIds: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "evidence",
         required: true,
       },
-      toSignature: {
-        type: String,
-        required: true,
+    ],
+
+    custodyChain: [
+      {
+        handoverFrom: {
+          userId: {
+            type: mongoose.Schema.ObjectId,
+            ref: "user",
+            default: null,
+          },
+          externalDetails: {
+            name: { type: String, default: null },
+            department: { type: String, default: null },
+            designation: { type: String, default: null },
+            contact: { type: String, default: null },
+            email: { type: String, default: null },
+          },
+        },
+        handoverTo: {
+          userId: {
+            type: mongoose.Schema.ObjectId,
+            ref: "user",
+            default: null,
+          },
+          externalDetails: {
+            name: { type: String, default: null },
+            department: { type: String, default: null },
+            designation: { type: String, default: null },
+            contact: { type: String, default: null },
+            email: { type: String, default: null },
+          },
+        },
+        handoverDate: {
+          type: Date,
+          default: Date.now,
+        },
+        purpose: {
+          type: String,
+          required: true,
+        },
+        digitalSignatures: {
+          fromSignature: {
+            type: String,
+            required: true,
+          },
+          toSignature: {
+            type: String,
+            required: true,
+          },
+          signaturesHash: {
+            type: String,
+            required: true,
+          },
+        },
       },
-      signaturesHash: {
-        type: String,
-        required: true,
-      },
-    },
-    // verificationCode: String, // For confirmation
-    // isReturned: Boolean,
-    // returnDetails: {
-    //   returnDate: Date,
-    //   receivedBy: ObjectId, // Reference to Users
-    //   condition: String,
-    //   notes: String,
-    // },
+    ],
 
     notificationsSent: {
       toHead: {
@@ -97,12 +86,23 @@ const handoverRecordSchema = new mongoose.Schema(
       },
       sentAt: {
         type: Date,
-        default: Date.now(),
+        default: Date.now,
       },
     },
   },
   { timestamps: true }
 );
 
-const handoverRecord = mongoose.model("handoverRecord", handoverRecordSchema);
-export default handoverRecord;
+const HandoverRecord = mongoose.model("handoverRecord", handoverRecordSchema);
+export default HandoverRecord;
+
+    // verificationCode: String, // For confirmation
+    // isReturned: Boolean,
+    // returnDetails: {
+    //   returnDate: Date,
+    //   receivedBy: ObjectId, // Reference to Users
+    //   condition: String,
+    //   notes: String,
+    // },
+
+   

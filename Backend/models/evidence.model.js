@@ -5,14 +5,14 @@ const evidenceSchema = new mongoose.Schema(
     raidId: {
       type: mongoose.Schema.ObjectId,
       required: true,
-    }, // Reference to Raids
+    },
     exhibitType: {
       type: String,
       enum: ["item", "document", "digital", "others"],
       default: "Not Selected",
     },
     exhibitId: {
-      type: String,
+      type: [String],
       required: true,
     },
     description: {
@@ -22,10 +22,10 @@ const evidenceSchema = new mongoose.Schema(
     seizedBy: {
       type: mongoose.Schema.ObjectId,
       required: true,
-    }, // Reference to Users
+    },
     seizureDate: {
       type: Date,
-      default: Date.now(),
+      default: Date.now,
     },
     locationSeized: {
       coordinates: {
@@ -88,52 +88,13 @@ const evidenceSchema = new mongoose.Schema(
       },
       uploadedAt: {
         type: Date,
-        default: Date.now(),
+        default: Date.now,
       },
     },
-
-    custodyChain: [
-      {
-        transferredFrom: {
-          type: mongoose.Schema.ObjectId,
-          default: null,
-        },
-        transferredTo: {
-          type: mongoose.Schema.ObjectId,
-          default: null,
-        },
-        transferDate: {
-          type: Date,
-          default: null,
-        },
-        transferPurpose: {
-          type: String,
-          default: null,
-        },
-        digitalSignatures: {
-          fromSignature: {
-            type: String,
-            required: true,
-          },
-          toSignature: {
-            type: String,
-            required: true,
-          },
-          signaturesHash: {
-            type: String,
-            required: true,
-          },
-        },
-        notes: {
-          type: String,
-          required: true,
-        },
-      },
-    ],
     currentHolder: {
       type: mongoose.Schema.ObjectId,
       required: true,
-    }, // Reference to Users
+    },
     isDisposed: {
       type: Boolean,
       default: false,
@@ -146,7 +107,7 @@ const evidenceSchema = new mongoose.Schema(
       disposedBy: {
         type: mongoose.Schema.ObjectId,
         default: null,
-      }, // Reference to Users
+      },
       disposalDate: {
         type: Date,
         default: null,
@@ -161,5 +122,4 @@ const evidenceSchema = new mongoose.Schema(
 );
 
 const Evidence = mongoose.model("evidence", evidenceSchema);
-
 export default Evidence;
