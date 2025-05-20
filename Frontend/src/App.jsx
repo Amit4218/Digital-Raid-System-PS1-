@@ -7,6 +7,8 @@ import RaidPage from "./pages/RaidPage";
 import Unplanned from "./pages/Unplanned";
 import Planned from "./pages/Planned";
 import Permission from "./pages/Permission";
+import Handover from "./pages/Handover";
+import FinishedRaids from "./pages/FinishedRaids";
 
 function App() {
   return (
@@ -18,6 +20,8 @@ function App() {
         <Route path="/unplanned-raid" element={<Unplanned />} />
         <Route path="/permission" element={<Permission />} />
         <Route path="/raid-start-form/:id" element={<Planned />} />
+        <Route path= "/handover/:raidId" element={<Handover />} />
+        <Route path="/Finished-raids" element={<FinishedRaids />} />
       </Routes>
       <ToastContainer theme="black" transition={Slide} autoClose={1000} />
     </>

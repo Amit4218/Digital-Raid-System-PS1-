@@ -6,6 +6,7 @@ import Sessions from "../models/session.model.js";
 import Raid from "../models/raid.model.js";
 import Crimainal from "../models/criminal.model.js";
 import Licence from "../models/licence.model.js";
+import HandoverRecord from "../models/handoverRecords.model.js";
 
 const router = express.Router();
 
@@ -219,6 +220,50 @@ router.post("/raid/:id", async (req, res) => {
     return res.status(500).json({ message: "something went wrong", error });
   }
 });
+
+//handover route
+
+router.post("/handover/:raidId", async (req, res) => {
+  const { raidId } = req.params;
+  const {
+    exhibitIds,
+    custodyChain,
+    notificationsSent,
+  } = req.body;
+
+  if (!exhibitIds || !Array.isArray(exhibitIds) || exhibitIds.length === 0) {
+    return res.status(400).json({ message: "Exhibit IDs are required and must be an array." });
+  }
+
+  if (!custodyChain || !Array.isArray(custodyChain) || custodyChain.length === 0) {
+    return res.status(400).json({ message: "Custody chain data is required and must be an array." });
+  }
+
+  try {
+    const newRecord = new HandoverRecord({
+      raidId,
+      exhibitIds,
+      custodyChain,
+      notificationsSent: notificationsSent || {
+        toHead: true,
+        toInCharge: true,
+        toReceiver: true,
+        sentAt: new Date(),
+      },
+    });
+
+    const savedRecord = await newRecord.save();
+    res.status(201).json({
+      message: "Handover record created successfully.",
+      handoverRecord: savedRecord,
+    });
+  } catch (error) {
+    console.error("Error creating handover record:", error);
+    res.status(500).json({ message: "Server error while creating handover record." });
+  }
+});
+
+
 
 // To get all raids
 

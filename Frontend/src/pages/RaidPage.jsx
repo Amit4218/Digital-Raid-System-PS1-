@@ -54,7 +54,7 @@ function RaidPage() {
     <>
       <Navbar />
       <div className="">
-        <div className="bg-zinc-800 px-6 absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 border h-[80vh] w-[70vw]  border-amber-300 rounded-xl mt-10  min-h-[300px] text-white shadow-lg overflow-x-auto no-scrollbar">
+        <div className="bg-zinc-800 px-6 absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 border max-h-[80vh] w-[70vw]  border-amber-300 rounded-xl mt-10  min-h-[300px] text-white shadow-lg overflow-x-auto no-scrollbar">
           {/* Desktop Header (hidden on mobile) */}
           <div className=" p-4 bg-zinc-800 hidden border-t border-t-amber-300 md:grid grid-cols-12 sticky top-0 font-semibold border-b border-amber-200/50 mb-4 text-amber-200">
             <span className="col-span-3">Raid ID</span>

@@ -61,11 +61,20 @@ const Navbar = () => {
           >
             Create Unplanned Raid
           </button>
+         
+          <button
+            onClick={(e) => {
+              navigate("/Finished-raids");
+            }}
+            className="px-6 py-2 text-white font-semibold rounded-full border border-white cursor-pointer shadow-md bg-[#213448] hover:bg-[#435465]"
+          >
+            Finished Raids
+          </button>
         </div>
 
         {/* Right - Logout */}
         <div className="flex items-center gap-10 mr-4">
-          <Notification/>
+          <Notification />
 
           <button
             onClick={logoutHandler}
