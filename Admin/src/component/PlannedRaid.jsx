@@ -254,7 +254,7 @@ const PlannedRaid = () => {
 
       <form
         onSubmit={handlePublish}
-        className="bg-white border  w-[90vw] border-[#213448] shadow-2xl rounded-xl p-6 absolute top-1/2 left-1/2  -translate-x-1/2 -translate-y-1/2"
+        className="bg-white border  w-full border-[#213448] shadow-2xl rounded-xl p-6 "
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
           {/* Culprit Name */}
