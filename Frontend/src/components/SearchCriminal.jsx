@@ -170,7 +170,7 @@ function SearchCriminal() {
   };
 
   return (
-    <div className="bg-[#213448] min-h-screen py-8">
+    <div className="bg-[#213448]  py-4">
       <div className="container mx-auto px-4">
         <div className="rounded-lg shadow-2xl p-6 md:p-8 lg:p-10">
           <h2 className="text-3xl font-bold text-center mb-8 text-gray-100">
@@ -218,9 +218,9 @@ function SearchCriminal() {
               </div>
 
               {criminal && (
-                <div className="mt-6 bg-zinc-700 p-4 rounded-lg">
+                <div className="mt-6 bg-[#243c56] p-4 rounded-lg">
                   <h3 className="text-xl font-semibold mb-2 text-gray-200">
-                    {criminal.criminalName}
+                    {"Name: " + criminal.criminalName}
                   </h3>
                   <div className="mt-4 text-gray-300">
                     <h4 className="font-medium mb-2">Past Records:</h4>
@@ -279,9 +279,9 @@ function SearchCriminal() {
               </div>
 
               {LicenceDetails && (
-                <div className="mt-6 bg-zinc-700 p-4 rounded-lg text-gray-300">
-                  <h3 className="text-xl font-semibold mb-4 text-gray-200">
-                    {LicenceDetails.licenceHolder}
+                <div className="mt-6 bg-[#243c56] p-4 rounded-lg text-gray-300">
+                  <h3 className="text-md tracking-tighter font-semibold mb-4 text-gray-200">
+                    {"Holder Name: " + LicenceDetails.licenceHolder}
                   </h3>
                   <div className="space-y-2">
                     <p>

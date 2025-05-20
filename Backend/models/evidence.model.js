@@ -7,23 +7,16 @@ const evidenceSchema = new mongoose.Schema(
       required: true,
     }, // Reference to Raids
     exhibitType: {
-      type: [String],
-      enum: ["item", "document", "digital"],
+      type: String,
+      enum: ["item", "document", "digital", "others"],
+      default: "Not Selected",
     },
     exhibitId: {
       type: String,
       required: true,
     },
-    category: {
-      type: String,
-      required: true,
-    },
     description: {
       type: String,
-      required: true,
-    },
-    quantity: {
-      type: Number,
       required: true,
     },
     seizedBy: {
@@ -53,7 +46,21 @@ const evidenceSchema = new mongoose.Schema(
           required: true,
         },
         originalName: {
+          type: [String],
+          required: true,
+        },
+        hash: {
           type: String,
+          default: null,
+        },
+      },
+      videos: {
+        fileUrl: {
+          type: [String],
+          required: true,
+        },
+        originalName: {
+          type: [String],
           required: true,
         },
         hash: {

@@ -94,6 +94,8 @@ import Navbar from "../components/Navbar";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import SearchCriminal from "../components/SearchCriminal";
+import UploadImage from "../components/UploadImage";
+import UploadVideo from "../components/UploadVideo";
 
 function Planned() {
   const { id } = useParams();
@@ -142,7 +144,7 @@ function Planned() {
 
   return (
     <>
-      <Navbar />
+      {/* <Navbar /> */}
 
       {/* Pre-filled Raid info */}
 
@@ -383,8 +385,28 @@ function Planned() {
         </div>
 
         {/* Search for crimainal record */}
+        <div className="">
+          <SearchCriminal />
+        </div>
 
-        <SearchCriminal/>
+        {/* Uploading the image */}
+        <div className="mt-3">
+          <UploadImage />
+        </div>
+
+        {/* Uploading the Video */}
+
+        <div className="">
+          <UploadVideo />
+        </div>
+
+        {/* Save the Raid Button */}
+
+        <div className=" border-[#2c4258] h-auto w-full mt-4 shadow-2xl rounded-md p-5 text-center">
+          <button className="px-10 py-2 bg-amber-400 rounded hover:bg-amber-600">
+            Submit Raid
+          </button>
+        </div>
       </div>
     </>
   );

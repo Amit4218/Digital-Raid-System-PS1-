@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import moongoose from "mongoose";
 
 const notificationsSent = new moongoose.Schema(
   {
