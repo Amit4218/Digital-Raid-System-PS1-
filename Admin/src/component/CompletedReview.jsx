@@ -1,9 +1,11 @@
 import React, { useState } from "react";
-import { Eye, Download } from "lucide-react";
+import { Eye, Download, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const CompletedReview = () => {
+  const navigate = useNavigate();
   const [showPreview, setShowPreview] = useState(false);
-  const warrantURL = "https://example.com/Raidwarrant.pdf"; // Replace with real URL
+  const warrantURL = "https://example.com/Raidwarrant.pdf";
 
   const handleDownload = () => {
     const link = document.createElement("a");
@@ -12,17 +14,30 @@ const CompletedReview = () => {
     link.click();
   };
 
+  const handleClose = () => {
+    navigate("/admin/raids");
+  };
+
   const [videos, setVideos] = useState([
     { id: "Dajdfsjf92832923d3", size: "49 MB", date: "Lat/Long 13/05/2025" },
     { id: "Dajdfsjf92832923d3", size: "52 MB", date: "Lat/Long 13/05/2025" },
   ]);
 
   return (
-    <div className="bg-[#e5ebbd] p-4 rounded-md font-sans text-sm">
-      {/* Status */}
-      <div className="flex items-center gap-2 mb-2">
-        <span className="w-3 h-3 bg-green-500 rounded-full shadow border border-white"></span>
-        <span className="text-green-700 font-medium">Completed</span>
+    <div className="bg-[#e5ebbd] p-4 rounded-md font-sans text-sm relative">
+      {/* Status with X button */}
+      <div className="flex justify-between items-center mb-2">
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-3 bg-green-500 rounded-full shadow border border-white"></span>
+          <span className="text-green-700 font-medium">Completed</span>
+        </div>
+        <button
+          onClick={handleClose}
+          className="bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+          aria-label="Close"
+        >
+          <X size={18} />
+        </button>
       </div>
 
       {/* Main Container */}
@@ -54,7 +69,7 @@ const CompletedReview = () => {
             <div>
               <div className="flex justify-between items-start mb-1">
                 <h2 className="text-base font-semibold text-black">
-                 Crime description
+                  Crime description
                 </h2>
                 <span className="text-red-600 text-xs font-semibold italic">
                   UNEDITABLE
@@ -147,6 +162,7 @@ const CompletedReview = () => {
         {/* Horizontal Line */}
         <hr className="mt-4 border-t border-gray-300" />
       </div>
+
       {/* New Section: Written Report, License, Uploaded Files */}
       <div className="mt-6 bg-[#1e2c3e] p-4 rounded-xl text-black flex flex-col gap-4 text-sm">
         {/* Written Report */}
@@ -220,6 +236,8 @@ const CompletedReview = () => {
           </div>
         </div>
       </div>
+
+      {/* Seized Item Details */}
       <div className="bg-[#e5ebbd] text-[#1e2c3e] p-6 rounded-lg shadow-lg mt-6 border">
         <h2 className="text-center text-xl font-bold mb-4">
           Seized Item Details
@@ -300,10 +318,16 @@ const CompletedReview = () => {
         />
       </div>
 
-      {/* Approve Button */}
-      <div className="text-right">
-        <button className="bg-lime-400 text-black font-semibold px-6 py-2 rounded-full">
+      {/* Approve and Close buttons */}
+      <div className="flex justify-end gap-4">
+        <button className="bg-green-500 text-white font-semibold px-6 py-2 rounded-full">
           Approve
+        </button>
+        <button
+          onClick={handleClose}
+          className="bg-red-500 text-white font-semibold px-6 py-2 rounded-full hover:bg-gray-300"
+        >
+          Close
         </button>
       </div>
     </div>

@@ -1,8 +1,7 @@
 import React from "react";
-
+import { useNavigate } from "react-router-dom";
 const RaidRequest = () => {
   const dummyData = {
-    
     inCharge: "Thandup",
     culpritName: "Amit",
     identification: "666666666",
@@ -17,21 +16,29 @@ const RaidRequest = () => {
 
   const handleApprove = () => {
     console.log("Raid approved:", dummyData);
-    
   };
 
   const handlePreview = () => {
-    
     alert("Opening warrant: " + dummyData.warrantFile);
   };
 
+ 
+  const navigate = useNavigate()
+ const handleClose = () => {
+   navigate('/admin/unplannedRaids')
+ };
+
   return (
     <div className="p-6 min-h-screen bg-gray-50">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center space-x-2">
-          
-        </div>
+      <div className="flex justify-between items-center mb-6 relative">
         <div className="text-red-500 font-semibold">UNEDITABLE</div>
+        <button
+          onClick={handleClose}
+          className="w-8 h-8 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white text-lg font-bold rounded-full absolute right-0 top-0"
+          aria-label="Close"
+        >
+          &times;
+        </button>
       </div>
 
       <div className="bg-white border border-[#213448] shadow-2xl rounded-xl p-6 space-y-6">
@@ -49,19 +56,27 @@ const RaidRequest = () => {
           <Info label="Raid Description" value={dummyData.description} wide />
         </div>
 
-        <div className="flex flex-col md:flex-row items-center justify-center gap-6 mt-4">
-          <button
-            onClick={handlePreview}
-            className="px-4 py-2 bg-[#213448] text-white font-bold rounded hover:bg-[#547792]"
-          >
-            Preview Warrant
-          </button>
+        <div className="flex flex-col md:flex-row md:justify-between items-center gap-6 mt-4">
+          <div className="flex gap-4">
+            <button
+              onClick={handlePreview}
+              className="px-4 py-2 bg-[#213448] text-white font-bold rounded hover:bg-[#547792]"
+            >
+              Preview Warrant
+            </button>
+            <button
+              onClick={handleApprove}
+              className="bg-green-600 text-white font-bold px-6 py-2 rounded-md hover:bg-green-700"
+            >
+              Approve
+            </button>
+          </div>
 
           <button
-            onClick={handleApprove}
-            className="bg-green-600 text-white font-bold px-6 py-2 rounded-md hover:bg-green-700"
+            onClick={handleClose}
+            className="bg-gray-300 text-[#213448] font-bold px-6 py-2 rounded-md hover:bg-gray-400"
           >
-            Approve
+            Close
           </button>
         </div>
       </div>

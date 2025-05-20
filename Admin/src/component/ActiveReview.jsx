@@ -1,6 +1,9 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 
 const ActiveReview = () => {
+  const navigate = useNavigate();
   const inCharge = "Thandup";
   const culpritName = "Amit";
   const identification = "6666666";
@@ -20,16 +23,30 @@ const ActiveReview = () => {
     link.click();
   };
 
+  const handleClose = () => {
+    navigate("/admin/raids");
+  };
+
   return (
-    <div className="p-6 min-h-screen bg-gray-50">
-      <div className="flex justify-between items-center mb-6">
+    <div className="p-6 min-h-screen bg-gray-50 relative">
+      <div className="flex justify-between items-center mt-20 mb-6">
         <div className="flex items-center space-x-2">
           <span className="text-lg font-semibold capitalize text-[#3B82F6]">
             Active
           </span>
           <span className="w-3 h-3 rounded-full bg-[#3B82F6] border-2 border-[#3B82F6]"></span>
         </div>
-        <div className="text-red-500 font-semibold">UNEDITABLE</div>
+        <div className="flex items-center space-x-4">
+          <div className="text-red-500 font-semibold">UNEDITABLE</div>
+          {/* X button with red circle */}
+          <button
+            onClick={handleClose}
+            className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
+            aria-label="Close"
+          >
+            <XMarkIcon className="h-5 w-5" />
+          </button>
+        </div>
       </div>
 
       <div className="bg-white border border-[#213448] shadow-2xl rounded-xl p-6">
@@ -111,30 +128,42 @@ const ActiveReview = () => {
 
         {/* Buttons */}
         <div className="flex flex-col items-center justify-center gap-8 mt-8 md:flex-row">
-          <div className="flex flex-col items-center">
-            <div className="flex gap-4 flex-wrap justify-center">
-              {!showPreview ? (
+          <div className="flex flex-col items-center w-full">
+            <div className="flex flex-wrap justify-between w-full items-center">
+              <div className="flex gap-4 flex-wrap">
+                {!showPreview ? (
+                  <button
+                    onClick={() => setShowPreview(true)}
+                    className="bg-[#213448] text-white font-bold px-4 py-2 rounded hover:bg-[#547792]"
+                  >
+                    Preview Warrant
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setShowPreview(false)}
+                    className="bg-red-500 text-white font-bold px-4 py-2 rounded hover:bg-red-600"
+                  >
+                    Close Preview
+                  </button>
+                )}
+
                 <button
-                  onClick={() => setShowPreview(true)}
+                  onClick={handleDownload}
                   className="bg-[#213448] text-white font-bold px-4 py-2 rounded hover:bg-[#547792]"
                 >
-                  Preview Warrant
+                  Download Warrant
                 </button>
-              ) : (
-                <button
-                  onClick={() => setShowPreview(false)}
-                  className="bg-red-500 text-white font-bold px-4 py-2 rounded hover:bg-red-600"
-                >
-                  Close Preview
-                </button>
-              )}
+              </div>
 
-              <button
-                onClick={handleDownload}
-                className="bg-[#213448] text-white font-bold px-4 py-2 rounded hover:bg-[#547792]"
-              >
-                Download Warrant
-              </button>
+              {/* Close button at far right */}
+              <div className="ml-auto">
+                <button
+                  onClick={handleClose}
+                  className="bg-red-500 text-white font-bold px-4 py-2 rounded-4xl hover:bg-gray-300"
+                >
+                  Close
+                </button>
+              </div>
             </div>
 
             {showPreview && (

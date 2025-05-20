@@ -1,7 +1,9 @@
 import React, { useState } from "react";
-import { Eye, Download } from "lucide-react";
+import { Eye, Download, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const ApprovedReview = () => {
+  const navigate = useNavigate();
   const [showPreview, setShowPreview] = useState(false);
   const warrantURL = "https://example.com/Raidwarrant.pdf"; // Replace with real URL
 
@@ -12,17 +14,30 @@ const ApprovedReview = () => {
     link.click();
   };
 
+  const handleClose = () => {
+    navigate("/admin/raids");
+  };
+
   const [videos, setVideos] = useState([
     { id: "Dajdfsjf92832923d3", size: "49 MB", date: "Lat/Long 13/05/2025" },
     { id: "Dajdfsjf92832923d3", size: "52 MB", date: "Lat/Long 13/05/2025" },
   ]);
 
   return (
-    <div className="bg-[#e5ebbd] p-4 rounded-md font-sans text-sm">
-      {/* Status */}
-      <div className="flex items-center gap-2 mb-2">
-        <span className="w-3 h-3 bg-green-500 rounded-full shadow border border-white"></span>
-        <span className="text-green-700 font-medium">Approved</span>
+    <div className="bg-[#e5ebbd] p-4 rounded-md font-sans text-sm relative">
+      {/* Status with X button */}
+      <div className="flex justify-between items-center mb-2">
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-3 bg-green-500 rounded-full shadow border border-white"></span>
+          <span className="text-green-700 font-medium">Approved</span>
+        </div>
+        <button
+          onClick={handleClose}
+          className="bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+          aria-label="Close"
+        >
+          <X size={18} />
+        </button>
       </div>
 
       {/* Main Container */}
@@ -147,6 +162,7 @@ const ApprovedReview = () => {
         {/* Horizontal Line */}
         <hr className="mt-4 border-t border-gray-300" />
       </div>
+
       {/* New Section: Written Report, License, Uploaded Files */}
       <div className="mt-6 bg-[#1e2c3e] p-4 rounded-xl text-black flex flex-col gap-4 text-sm">
         {/* Written Report */}
@@ -169,7 +185,6 @@ const ApprovedReview = () => {
           <div className="bg-[#f2f2c2] p-4 rounded-xl flex-1 shadow">
             <div className="flex justify-between items-center mb-2">
               <h3 className="text-lg font-semibold">License</h3>
-             
             </div>
             <div className="text-sm space-y-1 mb-3">
               <p>
@@ -192,7 +207,6 @@ const ApprovedReview = () => {
           <div className="bg-[#f2f2c2] p-4 rounded-xl flex-1 shadow">
             <div className="flex justify-between items-center mb-2">
               <h3 className="text-lg font-semibold">Uploaded Files</h3>
-              
             </div>
             <input
               type="text"
@@ -200,10 +214,11 @@ const ApprovedReview = () => {
               value="UploadedSeizedItems.Docs"
               className="w-full border border-gray-400 rounded px-2 py-1 text-sm mb-3"
             />
-          
           </div>
         </div>
       </div>
+
+      {/* Seized Item Details */}
       <div className="bg-[#e5ebbd] text-[#1e2c3e] p-6 rounded-lg shadow-lg mt-6 border">
         <h2 className="text-center text-xl font-bold mb-4">
           Seized Item Details
@@ -217,7 +232,6 @@ const ApprovedReview = () => {
               <option>Select</option>
             </select>
           </div>
-       
         </div>
 
         <div className="mb-4">
@@ -251,7 +265,6 @@ const ApprovedReview = () => {
 
       {/* Video Upload Section */}
       <div className="flex flex-col items-start mt-7">
-        
         <div className="bg-[#1e2c3e] text-white rounded-lg shadow w-full">
           <div className="grid grid-cols-3 p-2 font-semibold text-sm border-b border-white">
             <span>Video ID</span>
@@ -280,10 +293,13 @@ const ApprovedReview = () => {
         />
       </div>
 
-      {/* Approve Button */}
-      <div className="text-right">
-        <button className="bg-red-500 text-white font-semibold px-6 py-2 rounded-full">
-         Close
+      {/* Close button */}
+      <div className="flex justify-end gap-4">
+        <button
+          onClick={handleClose}
+          className="bg-red-500 text-white font-semibold px-6 py-2 rounded-full hover:bg-red-600"
+        >
+          Close
         </button>
       </div>
     </div>
