@@ -249,7 +249,7 @@ const PlannedRaid = () => {
           <span className="text-lg font-semibold capitalize">{status}</span>
           <span className="w-3 h-3 rounded-full bg-orange-500 border-2 border-orange-300"></span>
         </div>
-        <div className="text-red-500 font-semibold">EDITABLE</div>
+        <div className="text-green-600 font-semibold">EDITABLE</div>
       </div>
 
       <form

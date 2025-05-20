@@ -5,7 +5,15 @@ import Dashboard from '../component/Dashboard'
 import Raids from '../component/Raids'
 import UnplannedRaids from '../component/UnplannedRaids'
 import PlannedRaid from '../component/PlannedRaid'
+<<<<<<< HEAD
+import RaidRequest from '../component/RaidRequest'
+import PendingReview from '../component/PendingReview'
+import ActiveReview from '../component/ActiveReview'
+import CompletedReview from '../component/CompletedReview'
+import ApprovedReview  from '../component/ApprovedReview'
+=======
 import Logs from '../component/status/Logs'
+>>>>>>> upstream/main
 
 const AdminLanding = () => {
   return (
@@ -15,9 +23,19 @@ const AdminLanding = () => {
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path='raids' element={<Raids />} />
+<<<<<<< HEAD
+        <Route path='unplannedRaids' element={<UnplannedRaids />}/>
+        <Route path='/planned-raid'element={<PlannedRaid/>}/>
+        <Route path='/unplanned-request' element={<RaidRequest/>}/>
+        <Route path='/pending-review' element={<PendingReview/>}/>
+        <Route path='/active-review' element={<ActiveReview/>}/>
+        <Route path='/completed-review' element={<CompletedReview/>}/>
+        <Route path='/approved-review' element={<ApprovedReview/>}/>
+=======
         <Route path='unplannedRaids' element={<UnplannedRaids />} />
         <Route path='logs' element={<Logs />} />
         <Route path='planned-raid'element={<PlannedRaid/>}/>
+>>>>>>> upstream/main
       </Routes>
     </div>
 

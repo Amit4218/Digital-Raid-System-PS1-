@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const Active = ({
   raidId = "Raid ID",
@@ -6,6 +7,10 @@ const Active = ({
   address = "Address",
   type = "Planned",
 }) => {
+  const navigate = useNavigate()
+  const handleActiveReview =()=>{
+    navigate('/admin/active-review')
+  }
   return (
     <>
       <div className="bg-[#213448]  text-white shadow-md rounded-lg p-4 m-4 ">
@@ -33,16 +38,18 @@ const Active = ({
             </div>
           </div>
 
-          <button className="bg-white text-[#213448] shadow-2xl font-semibold px-4 py-1 rounded-full hover:bg-blue-600 text-sm">
+          <button 
+          onClick={handleActiveReview}
+          className="bg-white text-[#213448] shadow-2xl font-semibold px-4 py-1 rounded-full hover:bg-blue-600 text-sm">
             Review
           </button>
         </div>
       </div>
 
       <div>
-        <button className="bg-[#213448] text-white p-2 rounded-xl  fixed bottom-4 right-4">
-          Create new raid
-        </button>
+       
+        
+        
       </div>
     </>
   );
