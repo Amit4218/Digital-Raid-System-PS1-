@@ -3,6 +3,7 @@ import extractGPSData from "../utils/lat-long-image-parser";
 import UploadImg from "../utils/Uploadimage";
 import addWatermark from "../utils/AddWaterMarkToImage";
 import { toast } from "react-toastify";
+import axios from "axios";
 
 function UploadImage() {
   const [imagePreviewLink, setimagePreviewLink] = useState(null);
@@ -10,8 +11,10 @@ function UploadImage() {
   const fileInputRef = useRef(null);
   const [gpsData, setGpsData] = useState(null);
   const [uploadedImages, setUploadedImages] = useState([]);
-  const [category, setCategory] = useState("");
+  const [exhibitType, setexhibitType] = useState("");
   const [description, setDescription] = useState("");
+  const raidId = localStorage.getItem("raidId");
+  const userId = localStorage.getItem("userId");
 
   const fileChangeHandler = async (e) => {
     const file = e.target.files[0];
@@ -54,23 +57,52 @@ function UploadImage() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!category || !description || uploadedImages.length === 0) {
+
+    if (!exhibitType || !description || uploadedImages.length === 0) {
       toast.error("Please fill all fields and upload at least one image");
       return;
     }
 
-    const formData = {
-      category,
-      description,
-      images: uploadedImages,
-      createdAt: new Date().toISOString(),
-    };
+    try {
+      const formData = {
+        exhibitType,
+        description,
+        images: uploadedImages, // This now matches the backend expectation
+        raidId,
+        userId,
+      };
 
-    console.log("Form data to submit:", formData);
-    toast.success("Record saved successfully!");
-    // Here you would typically send the data to your backend
+      const res = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/user/save-record`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            // Add authorization header if needed
+          },
+        }
+      );
+
+      if (res.status === 200) {
+        toast.success("Record saved successfully!");
+        // Reset form
+        setexhibitType("");
+        setDescription("");
+        setUploadedImages([]);
+        setimagePreviewLink(null);
+        console.log(res.data);
+
+        const evidenceId = localStorage.setItem("evidenceId", res.data.evidence._id);
+      }
+    } catch (error) {
+      console.error("Submission error:", error);
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to save record. Please try again."
+      );
+    }
   };
 
   return (
@@ -84,10 +116,10 @@ function UploadImage() {
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
-          {/* Category Select */}
+          {/* exhibitType Select */}
           <div>
             <label
-              htmlFor="category"
+              htmlFor="exhibitType"
               className="block text-xs font-medium text-gray-300 uppercase tracking-wider mb-1"
             >
               Category
@@ -95,10 +127,10 @@ function UploadImage() {
             <div className="relative">
               <select
                 className="block w-full bg-[#33475e] border border-[#4a6178] text-gray-200 py-2 px-3 pr-8 rounded-md text-sm focus:ring-1 focus:ring-blue-400 focus:border-blue-400 appearance-none"
-                name="category"
-                id="category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                name="exhibitType"
+                id="exhibitType"
+                value={exhibitType}
+                onChange={(e) => setexhibitType(e.target.value)}
                 required
               >
                 <option value="" disabled>
@@ -271,15 +303,14 @@ function UploadImage() {
           )} */}
 
           {/* Submit Button */}
-
-          {/* <div className="pt-1">
+          <div className="pt-1">
             <button
               type="submit"
               className="w-full bg-[#3a5a7a] hover:bg-[#4a6a8a] text-white font-medium py-2 px-4 rounded-md text-sm transition focus:outline-none focus:ring-1 focus:ring-blue-400"
             >
               SAVE RECORD
             </button>
-          </div> */}
+          </div>
         </form>
       </div>
     </div>

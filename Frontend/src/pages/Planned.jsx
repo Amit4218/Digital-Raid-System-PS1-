@@ -1,107 +1,23 @@
-// import React, { useEffect, useState, useRef } from "react";
-// import { useParams } from "react-router-dom";
-// import UploadImage from "../components/UploadImage";
-// import axios from "axios";
-// import UploadVideo from "../components/UploadVideo";
-// import SearchCriminal from "../components/SearchCriminal";
-// import { toast } from "react-toastify";
-
-// function Planned() {
-//   const { id, userId } = useParams();
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
-//   const [info, setInfo] = useState(null);
-
-//   // gets all the info about the raid
-
-//   useEffect(() => {
-//     const getRaidInfo = async () => {
-//       try {
-//         setLoading(true);
-//         const res = await axios.post(
-//           `${import.meta.env.VITE_BASE_URL}/user/raid/${id}`
-//         );
-//         setInfo(res.data.info);
-//       } catch (err) {
-//         setError(err.message || "Failed to fetch raid info");
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-//     getRaidInfo();
-//   }, [id]);
-
-//   const notify = (e) => {
-//     e.preventDefault();
-//     const approved = prompt(
-//       "Approve Raid ? No changes can be made afterwords ! Please Type Confirm "
-//     );
-//     if (approved === "Confirm") {
-//       toast.success("Raid Submitted");
-//     } else {
-//       toast.info("Not Approved");
-//     }
-//   };
-
-//   if (loading) return <div>Loading raid information...</div>;
-//   if (error) return <div>Error: {error}</div>;
-//   if (!info) return <div>No raid information found</div>;
-
-//   return (
-//     <div className="min-h-screen bg-zinc-800 text-white p-5">
-//       <div className="raid-info-container max-w-4xl mx-auto">
-//         <h2 className="mb-6 text-3xl font-bold text-white">Raid Details</h2>
-
-//         <div className="grid gap-4 mb-8">{/* Raid details rendering... */}</div>
-
-//         <div className="flex gap-4 mb-8">
-//           <button className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded transition">
-//             Download Warrant
-//           </button>
-//           <button className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded transition">
-//             Preview Warrant
-//           </button>
-//         </div>
-//         {/* Image uploader */}
-//         <div className="">
-//           <UploadImage />
-//         </div>
-//         <div className="">
-//           <UploadVideo />
-//         </div>
-//         <div className="">
-//           <SearchCriminal />
-//         </div>
-//         <div className="flex justify-center items-center">
-//           <form>
-//             <button
-//               className="bg-blue-500 mt-5 px-3 py-3 rounded"
-//               onClick={notify}
-//             >
-//               Approve
-//             </button>
-//           </form>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
-// export default Planned;
-
 import React, { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
-import { useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import SearchCriminal from "../components/SearchCriminal";
 import UploadImage from "../components/UploadImage";
 import UploadVideo from "../components/UploadVideo";
+import { toast } from "react-toastify";
 
 function Planned() {
   const { id } = useParams();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [writtemReport, setwrittemReport] = useState("");
+  const crimainalId = localStorage.getItem("criminalId");
+  const licenceId = localStorage.getItem("licenceId");
+  const evidenceId = localStorage.getItem("evidenceId");
+  const raidId = localStorage.getItem("raidId");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const getRaidInfo = async () => {
@@ -141,6 +57,31 @@ function Planned() {
   if (loading) return <div className="p-4">Loading...</div>;
   if (error) return <div className="p-4 text-red-500">{error}</div>;
   if (!data) return <div className="p-4">No data found</div>;
+
+  const info = { crimainalId, licenceId, evidenceId, raidId };
+  
+
+  const SubmitRaid = async () => {
+    const confirm = prompt(
+      "Are you sure ? This can't be undone ! please type CONFIRM "
+    );
+    if (confirm === "CONFIRM") {
+      const res = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/user/confirm-raid`,
+        info
+      );
+      console.log(res);
+      if (res.status == 200) {
+        toast.success("Raid Completed Successfully");
+        navigate("/raidPage");
+        localStorage.removeItem("criminalId");
+        localStorage.removeItem("criminalId");
+        localStorage.removeItem("raidId");
+      } else {
+        toast.error("Something went wrong, Please Re-submmit again");
+      }
+    }
+  };
 
   return (
     <>
@@ -233,16 +174,12 @@ function Planned() {
                   </span>
                 </div>
                 <div>
-                  <span className="font-semibold text-gray-300">
-                    Coordinates:
-                  </span>{" "}
                   <span className="text-gray-100">
                     {data.location?.coordinates?.latitude ? (
                       <>
-                        Latitude:{" "}
-                        {data.location.coordinates.latitude.toFixed(6)}° N,
-                        Longitude:{" "}
-                        {data.location.coordinates.longitude.toFixed(6)}° E
+                        Latitude: {data.location.coordinates.latitude}° N,
+                        <br></br>
+                        Longitude: {data.location.coordinates.longitude}° E
                       </>
                     ) : (
                       "Not specified"
@@ -265,18 +202,10 @@ function Planned() {
                 </div>
                 <div className="mb-1">
                   <span className="font-semibold text-gray-300">
-                    Actual Start:
+                    Start Date:
                   </span>{" "}
                   <span className="text-gray-100">
                     {formatDateTime(data.actualStartDate)}
-                  </span>
-                </div>
-                <div>
-                  <span className="font-semibold text-gray-300">
-                    Actual End:
-                  </span>{" "}
-                  <span className="text-gray-100">
-                    {formatDateTime(data.actualEndDate)}
                   </span>
                 </div>
               </div>
@@ -374,10 +303,14 @@ function Planned() {
             </div>
             <div className="mt-3">
               <textarea
-                className="w-full border shadow-md rounded outline-none p-2"
+                className="w-full border shadow-md rounded outline-none p-5"
                 placeholder="Enter a summury of the raid"
-                name=""
-                id=""
+                value={writtemReport}
+                onChange={(e) => {
+                  setwrittemReport(e.target.value);
+                }}
+                name="written-report"
+                id="written-report"
                 rows="8"
               ></textarea>
             </div>
@@ -403,7 +336,10 @@ function Planned() {
         {/* Save the Raid Button */}
 
         <div className=" border-[#2c4258] h-auto w-full mt-4 shadow-2xl rounded-md p-5 text-center">
-          <button className="px-10 py-2 bg-amber-400 rounded hover:bg-amber-600">
+          <button
+            onClick={SubmitRaid}
+            className="px-10 py-2 bg-amber-400 rounded hover:bg-amber-600"
+          >
             Submit Raid
           </button>
         </div>
