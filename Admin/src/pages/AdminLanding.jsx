@@ -5,6 +5,7 @@ import Dashboard from '../component/Dashboard'
 import Raids from '../component/Raids'
 import UnplannedRaids from '../component/UnplannedRaids'
 import PlannedRaid from '../component/PlannedRaid'
+import Logs from '../component/status/Logs'
 
 const AdminLanding = () => {
   return (
@@ -14,8 +15,9 @@ const AdminLanding = () => {
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path='raids' element={<Raids />} />
-        <Route path='unplannedRaids' element={<UnplannedRaids />}/>
-        <Route path='/planned-raid'element={<PlannedRaid/>}/>
+        <Route path='unplannedRaids' element={<UnplannedRaids />} />
+        <Route path='logs' element={<Logs />} />
+        <Route path='planned-raid'element={<PlannedRaid/>}/>
       </Routes>
     </div>
 

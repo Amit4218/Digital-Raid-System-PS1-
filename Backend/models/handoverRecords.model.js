@@ -7,11 +7,11 @@ const handoverRecordSchema = new mongoose.Schema(
       ref: "raid",
       required: true,
     }, // Reference to Raids
-    exhibitIds: {
-      type: mongoose.Schema.Types.exhibitId,
+    exhibitIds:[ {
+      type: mongoose.Schema.Types.ObjectId,
       ref: "evidence",
       required: true,
-    }, // Reference to Evidence
+    }], // Reference to Evidence
     handoverFrom: {
       type: mongoose.Schema.ObjectId,
       ref: "user",
