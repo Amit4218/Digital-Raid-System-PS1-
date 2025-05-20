@@ -8,11 +8,10 @@ const evidenceSchema = new mongoose.Schema(
     },
     exhibitType: {
       type: String,
-      enum: ["item", "document", "digital", "others"],
       default: "Not Selected",
     },
     exhibitId: {
-      type: [String],
+      type: String,
       required: true,
     },
     description: {
@@ -20,7 +19,7 @@ const evidenceSchema = new mongoose.Schema(
       required: true,
     },
     seizedBy: {
-      type: mongoose.Schema.ObjectId,
+      type: String,
       required: true,
     },
     seizureDate: {
@@ -57,11 +56,11 @@ const evidenceSchema = new mongoose.Schema(
       videos: {
         fileUrl: {
           type: [String],
-          required: true,
+          default: null,
         },
         originalName: {
           type: [String],
-          required: true,
+          default: null,
         },
         hash: {
           type: String,
@@ -79,7 +78,7 @@ const evidenceSchema = new mongoose.Schema(
         },
         timestamp: {
           type: Date,
-          default: null,
+          default: Date.now(),
         },
         deviceInfo: {
           type: String,
@@ -114,7 +113,7 @@ const evidenceSchema = new mongoose.Schema(
       },
       authorization: {
         type: String,
-        required: true,
+        default: null,
       },
     },
   },

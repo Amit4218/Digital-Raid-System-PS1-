@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { toast } from "react-toastify";
 import axios from "axios";
+import UploadImage from "../components/UploadImage";
 
 function Permission() {
   const location = useLocation();
@@ -14,6 +15,8 @@ function Permission() {
   const knownDeviceName = "Test_bluetooth";
 
   const { raidId } = location.state || {};
+
+  localStorage.setItem("raidId", raidId);
 
   // Get user location on mount
   useEffect(() => {
@@ -42,7 +45,8 @@ function Permission() {
   // Update coordinates API
   const updateCoordinates = async () => {
     const token = localStorage.getItem("token");
-    const data = { token, latitude, longitude };
+    const data = { token, latitude, longitude, raidId };
+    console.log(data);
 
     try {
       await axios.put(
@@ -89,7 +93,6 @@ function Permission() {
       setBluetoothEnabled(false);
     }
   };
-
   const handleConfirm = async () => {
     if (locationEnabled && bluetoothEnabled) {
       toast.success("Raid Started");
@@ -150,7 +153,7 @@ function Permission() {
                     </span>
                   )}
                 </li>
-                <li>  
+                <li>
                   RFID Connection:
                   {bluetoothEnabled ? (
                     <div>

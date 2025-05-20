@@ -7,7 +7,9 @@ import Raid from "../models/raid.model.js";
 import Crimainal from "../models/criminal.model.js";
 import Licence from "../models/licence.model.js";
 import HandoverRecord from "../models/handoverRecords.model.js";
-
+import sendEmail from "../utils/nodemailer.util.js";
+import Evidence from "../models/evidence.model.js";
+import crypto from "crypto";
 const router = express.Router();
 
 // Login Route
@@ -91,17 +93,22 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// Update the session cordinates
+// Update the session cordinates And Raid Coordinates with sending email
 
 router.put("/update-cordinates", async (req, res) => {
-  const { token, latitude, longitude } = req.body;
+  const { token, latitude, longitude, raidId } = req.body;
 
   try {
     if (!token) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (jwtError) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
 
     if (!decoded.sessionId) {
       return res.status(401).json({ message: "Unauthorized" });
@@ -117,9 +124,50 @@ router.put("/update-cordinates", async (req, res) => {
       return res.status(404).json({ message: "Session not found" });
     }
 
+    // Also updating the raid coordinates
+    const raid = await Raid.findByIdAndUpdate(
+      raidId,
+      {
+        status: "active",
+        "location.coordinates": {
+          longitude,
+          latitude,
+        },
+        actualStartDate: Date.now(),
+      },
+      { new: true }
+    );
+
+    if (!raid) {
+      return res.status(400).json({ message: "Raid not found" });
+    }
+
+    const officer = await User.findById(raid.inchargeId);
+    const admin = await User.findById(raid.unplannedRequestDetails.approvedBy);
+
+    if (!officer || !admin) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const Emails = [officer.email, admin.email];
+    const data = {
+      subject: "New Raid Start Confirmation Notification",
+      text: `A new has started Raid Information : Raid Id: ${raidId}, Started By : ${raid.inCharge}, Raid Address : ${raid.location.address}, Raid Coordinates : Latitude : ${latitude}, Longitude: ${longitude}`,
+    };
+
+    // Send emails sequentially with error handling
+    for (let i = 0; i < Emails.length; i++) {
+      try {
+        await sendEmail(Emails[i], data);
+      } catch (emailError) {
+        console.error(`Failed to send email to ${Emails[i]}:`, emailError);
+        // Continue sending to other emails even if one fails
+      }
+    }
+
     res.status(200).json({ message: "Coordinates updated", session });
   } catch (error) {
-    console.error("Coordinates Update Error:");
+    console.error("Coordinates Update Error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
@@ -225,18 +273,22 @@ router.post("/raid/:id", async (req, res) => {
 
 router.post("/handover/:raidId", async (req, res) => {
   const { raidId } = req.params;
-  const {
-    exhibitIds,
-    custodyChain,
-    notificationsSent,
-  } = req.body;
+  const { exhibitIds, custodyChain, notificationsSent } = req.body;
 
   if (!exhibitIds || !Array.isArray(exhibitIds) || exhibitIds.length === 0) {
-    return res.status(400).json({ message: "Exhibit IDs are required and must be an array." });
+    return res
+      .status(400)
+      .json({ message: "Exhibit IDs are required and must be an array." });
   }
 
-  if (!custodyChain || !Array.isArray(custodyChain) || custodyChain.length === 0) {
-    return res.status(400).json({ message: "Custody chain data is required and must be an array." });
+  if (
+    !custodyChain ||
+    !Array.isArray(custodyChain) ||
+    custodyChain.length === 0
+  ) {
+    return res.status(400).json({
+      message: "Custody chain data is required and must be an array.",
+    });
   }
 
   try {
@@ -259,11 +311,11 @@ router.post("/handover/:raidId", async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating handover record:", error);
-    res.status(500).json({ message: "Server error while creating handover record." });
+    res
+      .status(500)
+      .json({ message: "Server error while creating handover record." });
   }
 });
-
-
 
 // To get all raids
 
@@ -329,6 +381,174 @@ router.post("/logout", async (req, res) => {
     res.status(500).json({ message: "Logout error", error: error.message });
   }
 });
+
+// Evidence Route
+
+router.post("/save-record", async (req, res) => {
+  const { exhibitType, description, images, raidId, userId } = req.body;
+
+  try {
+    if (!exhibitType || !description || !images || !raidId || !userId) {
+      return res.status(400).json({ message: "Data not found" });
+    }
+
+    const raid = await Raid.findById(raidId);
+    const user = await User.findById(userId);
+
+    if (!raid || !user) {
+      return res.status(400).json({ message: "unauthorized" });
+    }
+
+    const exhibitId = crypto
+      .createHash("sha256")
+      .update(`${images}${raidId}${userId}${Date.now()}`)
+      .digest("hex");
+
+    const imageHash = crypto
+      .createHash("sha256")
+      .update(JSON.stringify(`${images}${Date.now()}`))
+      .digest("hex");
+
+    // Fix the structure to match schema requirements
+    const evidence = await Evidence.create({
+      raidId,
+      exhibitType,
+      exhibitId,
+      description,
+      seizedBy: raid.inCharge,
+      locationSeized: {
+        coordinates: {
+          latitude: raid.location.coordinates.latitude,
+          longitude: raid.location.coordinates.longitude,
+        },
+      },
+      mediaFiles: {
+        images: {
+          fileUrl: Array.isArray(images)
+            ? images.map((img) => img.url)
+            : [images.url],
+          originalName: Array.isArray(images)
+            ? images.map((img) => img.name)
+            : [images.name],
+          hash: imageHash,
+        },
+        metadata: {
+          // This needs to be inside mediaFiles
+          latitude: raid.location.coordinates.latitude,
+          longitude: raid.location.coordinates.longitude,
+          timestamp: new Date(),
+          deviceInfo: null,
+        },
+        uploadedAt: new Date(),
+      },
+      currentHolder: raid.inchargeId, // Make sure this is the ObjectId, not the name
+    });
+
+    res.status(200).json({ message: "Success", evidence });
+  } catch (error) {
+    console.error("Error saving evidence:", error);
+    res.status(500).json({
+      message: "Something went wrong",
+      error: error.message, // Only send error message in development
+    });
+  }
+});
+
+router.post("/confirm-raid", async (req, res) => {
+  const { crimainalId, licenceId, evidenceId, raidId } = req.body;
+
+  console.log(crimainalId, licenceId, evidenceId, raidId);
+
+  try {
+    if (!evidenceId || !raidId) {
+      return res.status(400).json({ message: "Invalid Data" });
+    }
+
+    const criminal = await Crimainal.findById(crimainalId);
+
+    const licence = await Licence.findById(licenceId);
+
+    const raid = await Raid.findByIdAndUpdate(raidId, {
+      status: "completed",
+      evidenceId,
+      actualEndDate: Date.now(),
+      licence: {
+        holderName: licence.licenceHolder || null,
+        licenceId: licence.licenceId || null,
+      },
+      $set: {
+        "culprits.$[].identification": criminal.criminalId || null,
+      },
+    });
+
+    const officer = await User.findById(raid.inchargeId);
+    const admin = await User.findById(raid.unplannedRequestDetails.approvedBy);
+
+    if (!officer || !admin) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const Emails = [officer.email, admin.email];
+    const data = {
+      subject: "Raid Completation Notification",
+      text: `A Raid has successfully completed Raid Information : Raid Id: ${raidId}, Started By : ${raid.inCharge}, Raid Address : ${raid.location.address}, Raid Coordinates : Latitude : ${raid.location.coordinates.latitude}, Longitude: ${raid.location.coordinates.longitude} Raid Started At : ${raid.actualStartDate}, Raid Completed at : ${raid.actualEndDate}`,
+    };
+
+    // Send emails sequentially with error handling
+    for (let i = 0; i < Emails.length; i++) {
+      try {
+        const mail = await sendEmail(Emails[i], data);
+        // console.log(mail);
+      } catch (emailError) {
+        console.error(`Failed to send email to ${Emails[i]}:`, emailError);
+        // Continue sending to other emails even if one fails
+      }
+    }
+
+    res.status(200).json({ message: "Raid Completed", raid });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({ message: "Something went wrong" });
+  }
+});
+
+// This will help update the video inf updates
+
+router.post("/video-update-record", async (req, res) => {
+  const { evidenceId, video } = req.body;
+
+  try {
+    if (!evidenceId || !video) {
+      return res
+        .status(400)
+        .json({ message: "Evidence ID and video required" });
+    }
+
+    const videoHash = crypto
+      .createHash("sha256")
+      .update(JSON.stringify(`${video.url}${Date.now()}`))
+      .digest("hex");
+
+    const updatedEvidence = await Evidence.findByIdAndUpdate(
+      evidenceId,
+      {
+        "mediaFiles.videos.fileUrl": video.url,
+        "mediaFiles.videos.originalName": video.name,
+        "mediaFiles.videos.hash": videoHash,
+      },
+      { new: true }
+    );
+
+    res.status(200).json({ message: "Success", updatedEvidence });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error saving video", error: error.message });
+  }
+});
+
+// -------------------  Please Make Temporary routes below here ----------------- //
 
 // create criminal
 

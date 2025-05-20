@@ -74,7 +74,7 @@ function RaidPage() {
             raids.map((raid, idx) => (
               <div
                 key={raid._id || idx}
-                className="flex flex-col md:grid md:grid-cols-12 gap-2 md:gap-4 border-b border-zinc-700/50 py-4 text-sm hover:bg-zinc-700/40 transition-colors last:border-b-0"
+                className="flex flex-col md:grid md:grid-cols-13 gap-2 md:gap-4 border-b border-zinc-700/50 py-4 text-sm hover:bg-zinc-700/40 transition-colors last:border-b-0"
               >
                 {/* Mobile view */}
                 <div className="md:hidden space-y-2">
@@ -138,10 +138,10 @@ function RaidPage() {
                 </span>
 
                 {/* Action button */}
-                <span className="md:col-span-1">
+                <span className="md:col-span-2">
                   <button
                     onClick={() => handleStartRaid(raid._id)}
-                    className={`w-full px-2 -ml-6 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                    className={`w-full  py-1.5 rounded-md text-xs font-medium transition-colors ${
                       canStartRaid(raid)
                         ? "bg-amber-600/20 text-amber-400 hover:bg-amber-600/30"
                         : "bg-zinc-700/50 text-zinc-500 cursor-not-allowed"

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { type } from "os";
 
 const raidSchema = new mongoose.Schema(
   {
@@ -25,7 +26,22 @@ const raidSchema = new mongoose.Schema(
       type: mongoose.Schema.ObjectId,
       ref: "user",
       required: true,
+    },
+    evidenceId: {
+      type: mongoose.Schema.ObjectId,
+      ref: "evidence",
+      default: null,
     }, // Reference to Users (raid officer)
+    licence: {
+      holderName: {
+        type: String,
+        default: null,
+      },
+      licenceId: {
+        type: String,
+        default: null,
+      },
+    },
     culprits: [
       {
         name: {
@@ -98,6 +114,10 @@ const raidSchema = new mongoose.Schema(
         ref: "user",
         default: null,
       }, // Reference to Users
+      email: {
+        type: String,
+        default: null,
+      },
       requestDate: {
         type: Date,
         default: Date.now(),
