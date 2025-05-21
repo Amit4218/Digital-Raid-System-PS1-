@@ -14,7 +14,7 @@ import Logs from "../component/status/Logs";
 
 const AdminLanding = () => {
   return (
-    <div className="bg-white h-screen w-full  ">
+    <div className="bg-white h-screen w-full">
       <Navbar />
 
       <Routes>
