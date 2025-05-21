@@ -12,6 +12,7 @@ function RaidPage() {
 
   // Fetch all raids
   useEffect(() => {
+    setLoading(true);
     const getRaids = async () => {
       try {
         const res = await axios.get(
@@ -23,9 +24,13 @@ function RaidPage() {
           }
         );
         setRaids(res.data.raids);
+        setTimeout(() => {
+          setLoading(false);
+        }, 400);
       } catch (error) {
         console.error("Error fetching raids:", error);
         toast.error("Failed to fetch raids");
+        setLoading(false);
       }
     };
 

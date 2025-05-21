@@ -6,6 +6,7 @@ import SearchCriminal from "../components/SearchCriminal";
 import UploadImage from "../components/UploadImage";
 import UploadVideo from "../components/UploadVideo";
 import { toast } from "react-toastify";
+import Loading from "../components/Loading";
 
 function Planned() {
   const { id } = useParams();
@@ -54,7 +55,12 @@ function Planned() {
     return date.toLocaleTimeString();
   };
 
-  if (loading) return <div className="p-4">Loading...</div>;
+  if (loading)
+    return (
+      <div className="">
+        <Loading />
+      </div>
+    );
   if (error) return <div className="p-4 text-red-500">{error}</div>;
   if (!data) return <div className="p-4">No data found</div>;
 
@@ -80,6 +86,25 @@ function Planned() {
         toast.error("Something went wrong, Please Re-submmit again");
       }
     }
+  };
+
+  const downloadWarrant = () => {
+    const fileUrl = data.warrant?.fileUrl; // "/uploads/warrant-1747837969061.pdf"
+    if (!fileUrl) return;
+
+    const filename = fileUrl.split("/").pop(); // "warrant-1747837969061.pdf"
+    const downloadUrl = `${
+      import.meta.env.VITE_BASE_URL
+    }/user/download/${filename}`;
+
+    console.log("Download URL:", downloadUrl); // Debug log
+
+    const link = document.createElement("a");
+    link.href = downloadUrl;
+    link.download = "warrant.pdf";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -272,21 +297,24 @@ function Planned() {
                         {formatDateTime(data.warrant.uploadedAt)}
                       </span>
                     </div>
-                    <button
+                    {/* <button
                       className="mt-2 bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-3 rounded text-xs focus:outline-none focus:shadow-outline transition-colors duration-200"
                       onClick={() =>
                         window.open(data.warrant.fileUrl, "_blank")
                       }
                     >
                       View Warrant
-                    </button>
+                    </button> */}
                   </>
                 )}
               </div>
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <button className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md text-sm focus:outline-none focus:shadow-outline transition-colors duration-200">
+              <button
+                onClick={downloadWarrant}
+                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md text-sm focus:outline-none focus:shadow-outline transition-colors duration-200"
+              >
                 Download Warrent
               </button>
             </div>

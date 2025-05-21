@@ -10,6 +10,8 @@ import HandoverRecord from "../models/handoverRecords.model.js";
 import sendEmail from "../utils/nodemailer.util.js";
 import Evidence from "../models/evidence.model.js";
 import crypto from "crypto";
+import path from "path";
+import fs from "fs/promises";
 const router = express.Router();
 
 // Login Route
@@ -228,10 +230,6 @@ router.post("/create-raid", async (req, res) => {
   }
 });
 
-
-
-
-
 // To get name of all the raid officer
 
 router.get("/get-all-raid-officers", async (req, res) => {
@@ -354,18 +352,16 @@ router.post("/handover/:raidId", async (req, res) => {
   }
 });
 
-
-  function generateSignatureHash(fromSignature, toSignature) {
-    return {
-      fromHash: crypto.createHash("sha256").update(fromSignature).digest("hex"),
-      toHash: crypto.createHash("sha256").update(toSignature).digest("hex"),
-      combinedHash: crypto
-        .createHash("sha256")
-        .update(`${fromSignature}:${toSignature}`)
-        .digest("hex"),
-    };
-  }
-  
+function generateSignatureHash(fromSignature, toSignature) {
+  return {
+    fromHash: crypto.createHash("sha256").update(fromSignature).digest("hex"),
+    toHash: crypto.createHash("sha256").update(toSignature).digest("hex"),
+    combinedHash: crypto
+      .createHash("sha256")
+      .update(`${fromSignature}:${toSignature}`)
+      .digest("hex"),
+  };
+}
 
 // To get all raids
 
@@ -600,6 +596,25 @@ router.post("/video-update-record", async (req, res) => {
   }
 });
 
+router.get("/download/:filename", async (req, res) => {
+  try {
+    const filename = req.params.filename;
+    console.log("Requested file:", filename); // Debug log
+
+    const safeFilename = path.basename(filename);
+    const currentFilePath = new URL(import.meta.url).pathname;
+    const currentDir = path.dirname(currentFilePath);
+    const fileLocation = path.join(currentDir, "../uploads", safeFilename);
+
+    console.log("Looking for file at:", fileLocation); // Debug log
+
+    await fs.access(fileLocation);
+    res.download(fileLocation);
+  } catch (error) {
+    console.error("File download error:", error);
+    res.status(404).json({ message: "File not found" });
+  }
+});
 // -------------------  Please Make Temporary routes below here ----------------- //
 
 // create criminal

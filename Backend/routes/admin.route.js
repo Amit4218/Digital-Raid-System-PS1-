@@ -8,6 +8,7 @@ import AuditLog from "../models/auditLogs.model.js";
 import HandoverRecord from "../models/handoverRecords.model.js";
 import upload from "../config/multer.config.js";
 import sendEmail from "../utils/nodemailer.util.js";
+import Evidence from "../models/evidence.model.js";
 import crypto from "crypto";
 
 const router = express.Router();
@@ -127,7 +128,6 @@ router.post("/create-raid", async (req, res) => {
   }
 });
 
-
 //update unplanned raid
 router.put("/update-unplanned-request/:raidId", async (req, res) => {
   const { raidId } = req.params;
@@ -171,7 +171,33 @@ router.put("/update-unplanned-request/:raidId", async (req, res) => {
   }
 });
 
+// get all evidence of the raid
 
+router.post("/raid-evidence", async (req, res) => {
+  const { raidId } = req.params;
+
+  try {
+    if (!raidId) {
+      return res.status(400).json({ message: "Unauthorized" });
+    }
+
+    const raid = await Raid.findById(raidId);
+
+    if (!raid) {
+      return res.status(400).json({ message: "Raid dosent exists" });
+    }
+
+    const evidence = Evidence.find(raidId);
+
+    if (!evidence) {
+      return res.status(400).json({ message: "Evidence Dosent exists" });
+    }
+
+    res.status(200).json({ message: "Success", raid, evidence });
+  } catch (error) {
+    res.status(500).json({ message: error?.message });
+  }
+});
 
 //creating logs report
 
