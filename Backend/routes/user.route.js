@@ -152,7 +152,7 @@ router.put("/update-cordinates", async (req, res) => {
     const Emails = [officer.email, admin.email];
     const data = {
       subject: "New Raid Start Confirmation Notification",
-      text: `A new has started Raid Information : Raid Id: ${raidId}, Started By : ${raid.inCharge}, Raid Address : ${raid.location.address}, Raid Coordinates : Latitude : ${latitude}, Longitude: ${longitude}`,
+      text: `A New Raid has Been started\n\n  RAID DETAILS : \nRaid Id: ${raidId},\n Started By : ${raid.inCharge},\n Raid Address : ${raid.location.address},\n Raid Coordinates : Latitude : ${latitude}, Longitude: ${longitude}`,
     };
 
     // Send emails sequentially with error handling
@@ -208,6 +208,15 @@ router.post("/create-raid", async (req, res) => {
       description,
       createdBy: userId,
     });
+
+    const email = user.email;
+
+    const data = {
+      subject: "Raid Assignment Notification",
+      text: `An Unplanned Raid has been Assigned to You\n The Raid was created By : ${userId}.\n The Raid has been scheduled for: ${newRaid.scheduledDate}\n Suspect Name : ${culprits[0].name}\n Suspect Address: ${newRaid.location.address}.\n Description : ${description}  `,
+    };
+
+    const mail = sendEmail(email, data);
 
     res.status(201).json({
       message: "Unplanned raid request created successfully",
@@ -463,7 +472,8 @@ router.post("/save-record", async (req, res) => {
 });
 
 router.post("/confirm-raid", async (req, res) => {
-  const { crimainalId, licenceId, evidenceId, raidId } = req.body;
+  const { crimainalId, licenceId, evidenceId, raidId, writtemReport } =
+    req.body;
 
   console.log(crimainalId, licenceId, evidenceId, raidId);
 
@@ -479,6 +489,7 @@ router.post("/confirm-raid", async (req, res) => {
     const raid = await Raid.findByIdAndUpdate(raidId, {
       status: "completed",
       evidenceId,
+      writtenReport: writtemReport,
       actualEndDate: Date.now(),
       licence: {
         holderName: licence.licenceHolder || null,
@@ -499,7 +510,7 @@ router.post("/confirm-raid", async (req, res) => {
     const Emails = [officer.email, admin.email];
     const data = {
       subject: "Raid Completation Notification",
-      text: `A Raid has successfully completed Raid Information : Raid Id: ${raidId}, Started By : ${raid.inCharge}, Raid Address : ${raid.location.address}, Raid Coordinates : Latitude : ${raid.location.coordinates.latitude}, Longitude: ${raid.location.coordinates.longitude} Raid Started At : ${raid.actualStartDate}, Raid Completed at : ${raid.actualEndDate}`,
+      text: `A Raid has successfully completed \n\nRaid Details :\n Raid Id: ${raidId},\n Started By : ${raid.inCharge},\n Raid Address : ${raid.location.address},\n Raid Coordinates : Latitude : ${raid.location.coordinates.latitude}, Longitude: ${raid.location.coordinates.longitude}\n Raid Started At : ${raid.actualStartDate},\n Raid Completed at : ${raid.actualEndDate}`,
     };
 
     // Send emails sequentially with error handling

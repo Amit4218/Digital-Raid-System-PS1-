@@ -1,42 +1,149 @@
-import React from "react";
-import Pending from "./status/Pending";
-import Active from "./status/Active";
-import Completed from "./status/Completed";
-import Approved from "./status/Approved";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { toast } from "react-toastify";
 
-function Raids() {
+function Raid() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [raids, setRaids] = useState([]);
+
+  // Fetch all raids
+  useEffect(() => {
+    const getRaids = async () => {
+      setLoading(true); // Set loading to true when fetching starts
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}/admin/getRaids`,
+          {
+            headers: {
+              "x-access-key": import.meta.env.VITE_SECRET_ACCESS_KEY,
+            },
+          }
+        );
+        setRaids(res.data.raids);
+      } catch (error) {
+        console.error("Error fetching raids:", error);
+        toast.error("Failed to fetch raids");
+      } finally {
+        setLoading(false); // Set loading to false when fetching ends (success or error)
+      }
+    };
+
+    getRaids();
+  }, []);
+
+  function canStartRaid(raid) {
+    // Check if it's an unplanned request and approved
+    if (raid.isUnplannedRequest) {
+      return raid.unplannedRequestDetails?.approvalStatus === "approved";
+    }
+    // For planned raids, or if not an unplanned request, check status
+    return raid.status === "pending";
+  }
+
+  const handleStartRaid = (raidId) => {
+    navigate("/pending-review", { state: { raidId } });
+  };
+
+  // Helper function to get status dot color
+  const getStatusDotColor = (raid) => {
+    // Prioritize unplanned request status if it's an unplanned request
+    if (raid.status)
+      // Fallback to raid status if not an unplanned request or status is missing
+      switch (raid.status) {
+        case "pending":
+          return "bg-orange-500";
+        case "active":
+          return "bg-blue-500";
+        case "completed":
+          return "bg-green-500";
+        default:
+          return "bg-green-900";
+      }
+  };
+
   const handleCreateRaid = () => {
     navigate("/admin/planned-raid");
   };
 
   return (
     <>
-      <div className="flex flex-col items-center min-h-screen bg-[#f8fafc] pt-20 pb-8">
-        <div className="w-4/5 mx-auto bg-white rounded-xl shadow-lg overflow-hidden border border-[#e2e8f0]">
-          <div className="grid grid-cols-6 gap-4 bg-[#213448] p-4 font-semibold text-white">
-            <div>Raid ID</div>
-            <div>Culprit Name</div>
-            <div>Address</div>
-            <div>Raid Type</div>
-            <div>Status</div>
+      <div className="min-h-screen flex items-center justify-center bg-amber-50">
+        <div className="w-[85vw] mx-auto p-4 space-y-4">
+          {/* Header Row */}
+          <div className="flex items-center justify-between p-4 rounded-lg bg-[#292D32] text-gray-400 font-semibold text-sm border-b border-gray-700">
+            <span className="flex-1">Raid ID</span>
+            <span className="flex-1">Raid Incharge</span>
+            <span className="flex-1">Address</span>
+            <span className="flex-1">Raid Type</span>
+            <span className="w-1/12 text-center">Status</span>{" "}
+            {/* Centered for the dot */}
+            <span className="w-1/6 text-right">Action</span>{" "}
+            {/* Right aligned for the button */}
           </div>
 
-          <div className="divide-y divide-[#e2e8f0]">
-            <Pending
-              raidId="RAID-001"
-              culprit="John Doe"
-              address="123 Main St, City"
-              type="Planned"
-              className="hover:bg-[#f8fafc] even:bg-[#f8fafc] odd:bg-white"
-            />
-            <Active className="hover:bg-[#f8fafc] even:bg-[#f8fafc] odd:bg-white" />
-            <Completed className="hover:bg-[#f8fafc] even:bg-[#f8fafc] odd:bg-white" />
-            <Approved className="hover:bg-[#f8fafc] even:bg-[#f8fafc] odd:bg-white" />
-          </div>
+          {/* Content */}
+          {loading ? (
+            <div className="flex items-center justify-center text-gray-400 h-full py-10">
+              Loading raids...
+            </div>
+          ) : !raids || raids.length === 0 ? (
+            <div className="flex items-center justify-center text-gray-400 h-full py-10">
+              No raids found.
+            </div>
+          ) : (
+            raids.map(
+              (
+                raid // Removed idx as key as _id is stable
+              ) => (
+                <div
+                  key={raid._id}
+                  className="flex items-center justify-between p-4 rounded-lg bg-[#292D32] shadow-xl text-white border border-transparent hover:border-gray-700 transition-all duration-200"
+                >
+                  {/* Raid ID */}
+                  <span className="flex-1 font-mono text-sm text-gray-300">
+                    {raid._id?.slice(-8) || "N/A"}
+                  </span>
+                  {/* Incharge */}
+                  <span className="flex-1 text-sm text-gray-300">
+                    {raid.inCharge || "N/A"}
+                  </span>
+                  {/* Address */}
+                  <span className="flex-1 text-sm text-gray-300">
+                    {raid.location?.address || "N/A"}
+                  </span>
+                  {/* Raid Type */}
+                  <span className="flex-1 text-sm text-gray-300">
+                    {Array.isArray(raid.raidType)
+                      ? raid.raidType.join(", ")
+                      : raid.raidType || "N/A"}
+                  </span>
+
+                  {/* Status dot */}
+                  <div className="flex items-center justify-center w-1/12">
+                    <span
+                      className={`h-3 w-3 rounded-full ${getStatusDotColor(
+                        raid
+                      )}`}
+                    ></span>
+                  </div>
+
+                  {/* Action button */}
+                  <div className="w-1/6 flex justify-end">
+                    <button
+                      onClick={() => handleStartRaid(raid._id)}
+                      className="px-6 py-2 rounded-md bg-[#292D32] text-white border border-gray-600 hover:bg-gray-700 transition-colors duration-200 text-sm font-semibold"
+                      disabled={!canStartRaid(raid)}
+                    >
+                      Review
+                    </button>
+                  </div>
+                </div>
+              )
+            )
+          )}
         </div>
-
         <button
           onClick={handleCreateRaid}
           className="fixed bottom-6 right-6 bg-[#213448] text-white px-6 py-3 rounded-full shadow-lg hover:bg-[#1a2a3a] transition-colors flex items-center gap-2"
@@ -60,4 +167,4 @@ function Raids() {
   );
 }
 
-export default Raids;
+export default Raid;

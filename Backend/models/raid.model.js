@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { type } from "os";
 
 const raidSchema = new mongoose.Schema(
   {
@@ -10,7 +9,7 @@ const raidSchema = new mongoose.Schema(
     }, // 'planned' or 'unplanned'
     status: {
       type: String,
-      enum: ["pending", "active", "completed"],
+      enum: ["pending", "active", "completed", "completed_approved"],
       default: "pending",
     }, // 'pending', 'active', 'completed', 'completed_approved'
     createdBy: {
@@ -32,6 +31,10 @@ const raidSchema = new mongoose.Schema(
       ref: "evidence",
       default: null,
     }, // Reference to Users (raid officer)
+    writtenReport: {
+      type: String,
+      default: null,
+    },
     licence: {
       holderName: {
         type: String,

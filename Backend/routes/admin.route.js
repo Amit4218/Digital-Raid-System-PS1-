@@ -6,8 +6,9 @@ import User from "../models/user.model.js";
 import Sessions from "../models/session.model.js";
 import AuditLog from "../models/auditLogs.model.js";
 import HandoverRecord from "../models/handoverRecords.model.js";
-// import crypto from "crypto";
-
+import upload from "../config/multer.config.js";
+import sendEmail from "../utils/nodemailer.util.js";
+import crypto from "crypto";
 
 const router = express.Router();
 
@@ -53,54 +54,76 @@ router.post("/login", async (req, res) => {
 
 // create a new planned raid
 
-router.post("/createRaid", async (req, res) => {
+router.post("/create-raid", async (req, res) => {
   const {
-    raidType,
-    createdBy,
     inCharge,
     culprits,
-    location, // Expecting location object
+    location,
     description,
-    isUnplannedRequest,
-    unplannedRequestDetails,
+    scheduledDate,
+    adminId,
     warrant,
   } = req.body;
 
   try {
-    // Prepare location object with null coordinates if not provided
-    const raidLocation = {
-      address: location.address,
-      coordinates: location.coordinates || {
-        longitude: null,
-        latitude: null,
+    // find the officer
+    const user = await User.findById(inCharge);
+
+    if (!user) {
+      return res.status(404).json({ message: "unauthorized" });
+    }
+    // console.log(user);
+
+    if (!culprits || !location || !description) {
+      // Validate required fields
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    // Validate culprit details
+    if (!culprits.length || !culprits[0].name) {
+      return res.status(400).json({ message: "Invalid culprit details" });
+    }
+
+    const newRaid = await Raid.create({
+      raidType: "planned",
+      inCharge: user.username,
+      inchargeId: user._id,
+      culprits: [
+        {
+          name: culprits[0].name,
+          identification: culprits[0].identification,
+        },
+      ],
+      warrant: {
+        fileUrl: warrant,
+        hash: crypto.createHash("sha256").update(`${warrant}`).digest("hex"),
+        uploadedAt: Date.now(),
       },
+      isUnplannedRequest: false,
+      location: {
+        address: location.address,
+      },
+      scheduledDate: scheduledDate || Date.now(),
+      description,
+      createdBy: adminId,
+    });
+
+    const email = user.email;
+
+    const data = {
+      subject: "Raid Assignment Notification",
+      text: `An Planned Raid has been Registered \n The Raid was created By : ${adminId}.\n The Raid has been scheduled for: ${newRaid.scheduledDate}\n Suspect Name : ${culprits[0].name}\n Suspect Address: ${newRaid.location.address}.\n Description : ${description}  `,
     };
 
-    const raid = new Raid({
-      raidType,
-      status: "pending",
-      createdBy,
-      inCharge,
-      culprits,
-      location: raidLocation,
-      description,
-      scheduledDate: new Date(),
-      isUnplannedRequest: isUnplannedRequest || false,
-      unplannedRequestDetails: isUnplannedRequest
-        ? unplannedRequestDetails
-        : null,
-      warrant: warrant || null,
-    });
+    const mail = sendEmail(email, data);
 
-    await raid.save();
-    res.status(201).json({ message: "Raid created successfully", raid });
+    res.status(201).json({
+      message: "Unplanned raid request created successfully",
+      data: newRaid,
+    });
   } catch (error) {
     console.error("Error creating raid:", error);
-    res.status(500).json({
-      message: "Error creating raid",
-      error: error.message,
-      details: error.errors,
-    });
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 
@@ -150,7 +173,7 @@ router.post("/create-log", async (req, res) => {
           .populate("raidId")
           .populate("exhibitIds")
           .populate("handoverFrom")
-          .populate("handoverTo.userId")
+          .populate("handoverTo.adminId")
           .lean();
 
         if (!handover) {
@@ -172,8 +195,8 @@ router.post("/create-log", async (req, res) => {
           {
             field: "handoverTo",
             oldValue: null,
-            newValue: handover.handoverTo?.userId
-              ? handover.handoverTo.userId?._id
+            newValue: handover.handoverTo?.adminId
+              ? handover.handoverTo.adminId?._id
               : handover.handoverTo.externalDetails,
           },
           { field: "purpose", oldValue: null, newValue: handover.purpose },
@@ -304,6 +327,23 @@ router.get("/getRaids", async (req, res) => {
     console.error("Error fetching officers:", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
+});
+
+// Warent Upload route / function
+
+router.post("/upload-warrant", upload.single("warrant"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ message: "No file uploaded." });
+  }
+
+  const filePath = `/uploads/${req.file.filename}`;
+  console.log("File uploaded:", req.file);
+
+  res.status(200).json({
+    message: "File uploaded successfully!",
+    filePath: filePath,
+    fileName: req.file.filename,
+  });
 });
 
 export default router;

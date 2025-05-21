@@ -24,7 +24,12 @@ function Login() {
 
       if (r.status === 200) {
         localStorage.setItem("token", r.data.token);
-        localStorage.setItem("userId", r.data.user._id);
+        localStorage.setItem("adminId", r.data.user._id);
+        localStorage.setItem(
+          "adminpicture",
+          r.data.user.personalDetails.picture
+        );
+
         navigate("/admin");
         toast.success("Logged in successfully");
       } else {
@@ -66,7 +71,9 @@ function Login() {
             />
           </div>
           <div className="w-full hover:cursor-pointer mt-2 bg-blue-400 p-2 rounded-md text-center">
-            <button className=" w-full hover:cursor-pointer" type="submit">Submit</button>
+            <button className=" w-full hover:cursor-pointer" type="submit">
+              Submit
+            </button>
           </div>
         </div>
       </form>
