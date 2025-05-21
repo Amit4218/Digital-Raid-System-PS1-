@@ -12,7 +12,7 @@ const handoverRecordSchema = new mongoose.Schema(
       ref: "evidence",
       default: "Not Selected",
     },
-    exhibitIds: 
+    exhibitId: 
       {
         type: String,
         ref: "evidence",
