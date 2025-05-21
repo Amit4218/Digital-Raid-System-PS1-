@@ -12,7 +12,6 @@ import L from "leaflet";
 import "leaflet.heat";
 import axios from "axios";
 
-
 // Heatmap Layer (always shown)
 const HeatmapLayer = () => {
   const map = useMap();
@@ -89,7 +88,6 @@ const Heatmap = () => {
           point.culpritName,
         ]);
       setMarkerPosition(markerPosition);
-      
     } catch (error) {
       console.error("Error fetching marker data:", error);
     }
@@ -124,7 +122,6 @@ const Heatmap = () => {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-       
         <HeatmapLayer />
 
         {showMarkers &&

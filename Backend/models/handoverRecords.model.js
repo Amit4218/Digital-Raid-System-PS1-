@@ -7,14 +7,18 @@ const handoverRecordSchema = new mongoose.Schema(
       ref: "raid",
       required: true,
     },
-
-    exhibitIds: [
+    exhibitType: {
+      type: String,
+      ref: "evidence",
+      default: "Not Selected",
+    },
+    exhibitIds: 
       {
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         ref: "evidence",
         required: true,
       },
-    ],
+    
 
     custodyChain: [
       {
@@ -51,6 +55,10 @@ const handoverRecordSchema = new mongoose.Schema(
           default: Date.now,
         },
         purpose: {
+          type: String,
+          required: true,
+        },
+        itemDescription: {
           type: String,
           required: true,
         },

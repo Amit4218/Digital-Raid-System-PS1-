@@ -9,6 +9,7 @@ const FinishedRaids = () => {
   const navigate = useNavigate();
   const [raids, setRaids] = useState([]);
   const [loading, setLoading] = useState(true);
+  
 
   // Assuming inCharge is stored in localStorage after login
   const inCharge = localStorage.getItem("inCharge");

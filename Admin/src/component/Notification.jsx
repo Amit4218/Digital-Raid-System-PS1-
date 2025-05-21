@@ -66,11 +66,11 @@ const Notification = () => {
               };
             });
 
-          console.log("Generated Notifications:", raidNotifications);
+          // console.log("Generated Notifications:", raidNotifications);
           setNotifications(raidNotifications);
           setUnreadCount(raidNotifications.length);
         } else {
-          console.log("No raids data found in response");
+          // console.log("No raids data found in response");
           setNotifications([]);
           setUnreadCount(0);
         }
