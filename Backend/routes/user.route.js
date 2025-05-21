@@ -185,7 +185,7 @@ router.post("/create-raid", async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "unauthorized" });
     }
-    console.log(user);
+    // console.log(user);
 
     if (!culprits || !location || !description) {
       // Validate required fields
@@ -271,6 +271,12 @@ router.post("/raid/:id", async (req, res) => {
 
 //handover route
 
+// 🔐 Function to generate hash from digital signatures
+function generateSignatureHash(fromSignature, toSignature) {
+  const data = `${fromSignature}:${toSignature}`;
+  return crypto.createHash("sha256").update(data).digest("hex");
+}
+
 router.post("/handover/:raidId", async (req, res) => {
   const { raidId } = req.params;
   const { exhibitIds, custodyChain, notificationsSent } = req.body;
@@ -294,20 +300,22 @@ router.post("/handover/:raidId", async (req, res) => {
   try {
     const newRecord = new HandoverRecord({
       raidId,
+      exhibitType,
       exhibitIds,
-      custodyChain,
-      notificationsSent: notificationsSent || {
+      custodyChain: [custodyEntry], // Initial custody entry
+      notificationsSent: {
         toHead: true,
         toInCharge: true,
         toReceiver: true,
-        sentAt: new Date(),
       },
     });
 
-    const savedRecord = await newRecord.save();
+    await handoverRecord.save();
+
     res.status(201).json({
-      message: "Handover record created successfully.",
-      handoverRecord: savedRecord,
+      success: true,
+      message: "Handover record created successfully",
+      data: handoverRecord,
     });
   } catch (error) {
     console.error("Error creating handover record:", error);

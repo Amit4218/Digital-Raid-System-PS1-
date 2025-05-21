@@ -6,6 +6,9 @@ import User from "../models/user.model.js";
 import Sessions from "../models/session.model.js";
 import AuditLog from "../models/auditLogs.model.js";
 import HandoverRecord from "../models/handoverRecords.model.js";
+// import crypto from "crypto";
+
+
 const router = express.Router();
 
 // Login Route
@@ -234,7 +237,7 @@ router.get("/get-raid-officers", async (req, res) => {
 router.get("/heatmap", async (req, res) => {
   try {
     const raids = await Raid.find({ status: "completed_approved" });
-    console.log("Fetched raids:", raids); // Log raw data
+    //console.log("Fetched raids:", raids); // Log raw data
 
     if (!raids || raids.length === 0) {
       return res.status(404).json({ message: "No raids found" });
@@ -242,7 +245,7 @@ router.get("/heatmap", async (req, res) => {
 
     // Log first raid's structure to debug
     // console.log("Sample raid structure:", raids[0]);
-    console.log(raids[0]?.location);
+    // console.log(raids[0]?.location);
     const heatmapData = raids.map((raid) => ({
       address: raid.location?.address || "Unknown",
       culpritName: raid.culprits?.[0]?.name || "Unknown",
@@ -292,7 +295,7 @@ router.get("/getRaids", async (req, res) => {
     }
 
     const raids = await Raid.find();
-    console.log(raids);
+    // console.log(raids);
     res.status(200).json({
       message: "Data fetched successfully",
       raids,
