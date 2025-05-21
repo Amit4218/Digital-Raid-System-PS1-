@@ -23,10 +23,10 @@ const AdminLanding = () => {
         <Route path="unplannedRaids" element={<UnplannedRaids />} />
         <Route path="/planned-raid" element={<PlannedRaid />} />
         <Route path="/unplanned-request/:raidId" element={<RaidRequest />} />
-        <Route path="/pending-review" element={<PendingReview />} />
-        <Route path="/active-review" element={<ActiveReview />} />
-        <Route path="/completed-review" element={<CompletedReview />} />
-        <Route path="/approved-review" element={<ApprovedReview />} />
+        <Route path="/pending/:raidId" element={<PendingReview />} />
+        <Route path="/active/:raidId" element={<ActiveReview />} />
+        <Route path="/completed/:raidId" element={<CompletedReview />} />
+        <Route path="/approved/:raidId" element={<ApprovedReview />} />
         <Route path="logs" element={<Logs />} />
       </Routes>
     </div>
