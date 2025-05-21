@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 
-// Import images
+// Images imports (your images)
 import img1 from "../Images/link1.png";
 import img2 from "../Images/link2.png";
 import img3 from "../Images/link3.png";
@@ -30,58 +30,69 @@ const images = [
 ];
 
 const links = [
-  "https://excise.sikkim.gov.in/UserLogIn/Login.aspx", // img1
-  "https://excise.sikkim.gov.in/public_License_Application/PLA_quick_tips.aspx", // img2
-  "https://excise.sikkim.gov.in/public_License_Application/PLA_Application_Status.aspx", // img3
-  "https://excise.sikkim.gov.in/UserLogIn/Login.aspx", // img4
-  "https://excise.sikkim.gov.in/UserLogIn/Login.aspx", // img5
-  "https://excise.sikkim.gov.in/UserLogIn/Login.aspx", // img6
-  "https://excise.sikkim.gov.in/UserLogIn/Login.aspx", // img7
-  "https://excise.sikkim.gov.in/UserLogIn/Login.aspx", // img8
-  "https://excise.sikkim.gov.in/UserLogIn/Login.aspx", // img9
-  "https://excise.sikkim.gov.in/UserLogIn/Login.aspx", // img10
-  "https://excise.sikkim.gov.in/UserLogIn/Login.aspx", // img11
-  "https://excise.sikkim.gov.in/Retail_Map/Page/Retail_Map_Show.aspx", // img12
+  "https://excise.sikkim.gov.in/UserLogIn/Login.aspx",
+  "https://excise.sikkim.gov.in/public_License_Application/PLA_quick_tips.aspx",
+  "https://excise.sikkim.gov.in/public_License_Application/PLA_Application_Status.aspx",
+  "https://excise.sikkim.gov.in/UserLogIn/Login.aspx",
+  "https://excise.sikkim.gov.in/UserLogIn/Login.aspx",
+  "https://excise.sikkim.gov.in/UserLogIn/Login.aspx",
+  "https://excise.sikkim.gov.in/UserLogIn/Login.aspx",
+  "https://excise.sikkim.gov.in/UserLogIn/Login.aspx",
+  "https://excise.sikkim.gov.in/UserLogIn/Login.aspx",
+  "https://excise.sikkim.gov.in/UserLogIn/Login.aspx",
+  "https://excise.sikkim.gov.in/UserLogIn/Login.aspx",
+  "https://excise.sikkim.gov.in/Retail_Map/Page/Retail_Map_Show.aspx",
 ];
 
 const InfiniteScrolling = () => {
   const scrollRef = useRef(null);
+  const animationRef = useRef(null);
+  const isHoveredRef = useRef(false); // track hover state
+  const scrollAmountRef = useRef(0);
 
   useEffect(() => {
     const scrollContainer = scrollRef.current;
-    let scrollAmount = 0;
     const speed = 1.5;
 
     if (!scrollContainer) return;
 
     scrollContainer.scrollLeft = 0;
-
-    let animationFrameId;
+    scrollAmountRef.current = 0;
 
     const step = () => {
       if (!scrollContainer) return;
 
-      scrollAmount += speed;
+      if (!isHoveredRef.current) {
+        scrollAmountRef.current += speed;
 
-      if (scrollAmount >= scrollContainer.scrollWidth / 2) {
-        scrollAmount = 0;
+        if (scrollAmountRef.current >= scrollContainer.scrollWidth / 2) {
+          scrollAmountRef.current = 0;
+        }
+
+        scrollContainer.scrollLeft = scrollAmountRef.current;
       }
 
-      scrollContainer.scrollLeft = scrollAmount;
-
-      animationFrameId = requestAnimationFrame(step);
+      animationRef.current = requestAnimationFrame(step);
     };
 
-    animationFrameId = requestAnimationFrame(step);
+    animationRef.current = requestAnimationFrame(step);
 
-    return () => cancelAnimationFrame(animationFrameId);
+    return () => cancelAnimationFrame(animationRef.current);
   }, []);
 
   const duplicatedImages = [...images, ...images];
   const duplicatedLinks = [...links, ...links];
 
+  const handleMouseEnter = () => {
+    isHoveredRef.current = true;
+  };
+
+  const handleMouseLeave = () => {
+    isHoveredRef.current = false;
+  };
+
   return (
-    <div className="overflow-hidden w-full select-none border-y border-green-500 pt-6 py-6">
+    <div className="w-full select-none border-t border-green-500 pt-6 py-6">
       <div
         ref={scrollRef}
         className="flex space-x-6"
@@ -89,8 +100,9 @@ const InfiniteScrolling = () => {
           width: "100%",
           maxWidth: "100vw",
           overflowX: "hidden",
-          scrollBehavior: "auto",
         }}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
         {duplicatedImages.map((src, index) => (
           <a
@@ -108,6 +120,11 @@ const InfiniteScrolling = () => {
             />
           </a>
         ))}
+      </div>
+
+      {/* Label below */}
+      <div className="mt-6 bg-green-100 text-center text-lg font-medium py-2 rounded shadow-md">
+        E-SERVICES
       </div>
     </div>
   );

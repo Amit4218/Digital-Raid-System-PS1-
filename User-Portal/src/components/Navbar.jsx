@@ -8,6 +8,7 @@ import ActsRulesOrders from "./NavButtons/ActsRulesOrders";
 import RightToInformation from "./NavButtons/RightToInformation";
 import Feedback from "./NavButtons/Feedback";
 import ContactUs from "./NavButtons/ContactUs";
+import PublicGrievance from "./NavButtons/PublicGrievance";
 
 const Navbar = () => {
   return (
@@ -21,13 +22,15 @@ const Navbar = () => {
           </div>
         </div>
 
-        <nav className="flex flex-wrap justify-center gap-4 text-sm font-medium">
+        <nav className="flex flex-wrap justify-center gap-4  text-xs font-medium">
           <AboutUs />
           <FactsFigures />
           <ActsRulesOrders />
           <RightToInformation />
+          <PublicGrievance/>
           <Feedback />
           <ContactUs />
+
         </nav>
       </div>
     </header>
