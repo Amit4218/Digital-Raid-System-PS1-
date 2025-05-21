@@ -7,6 +7,7 @@ const PendingReview = () => {
   const [inCharge, setInCharge] = useState("Thandup");
   const [culpritName, setCulpritName] = useState("Amit");
   const [identification, setIdentification] = useState("6666666");
+  const { raidId } = location.state || {};
   const [crimeDescription, setCrimeDescription] = useState(
     "Suspected of smuggling illegal goods."
   );

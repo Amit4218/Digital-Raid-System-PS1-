@@ -58,8 +58,7 @@ function Planned() {
   if (error) return <div className="p-4 text-red-500">{error}</div>;
   if (!data) return <div className="p-4">No data found</div>;
 
-  const info = { crimainalId, licenceId, evidenceId, raidId };
-  
+  const info = { crimainalId, licenceId, evidenceId, raidId, writtemReport };
 
   const SubmitRaid = async () => {
     const confirm = prompt(
