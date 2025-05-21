@@ -3,13 +3,13 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { toast } from "react-toastify";
 import axios from "axios";
-import UploadImage from "../components/UploadImage";
-
+import Loading from "../components/Loading";
 function Permission() {
   const location = useLocation();
   const navigate = useNavigate();
   const [latitude, setLatitude] = useState(null);
   const [longitude, setLongitude] = useState(null);
+  const [loading, setloading] = useState(false);
   const [locationEnabled, setLocationEnabled] = useState(false);
   const [bluetoothEnabled, setBluetoothEnabled] = useState(false);
   const knownDeviceName = "Test_bluetooth";
@@ -20,6 +20,7 @@ function Permission() {
 
   // Get user location on mount
   useEffect(() => {
+    setloading(true);
     function getLocation() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -27,15 +28,24 @@ function Permission() {
             setLatitude(position.coords.latitude);
             setLongitude(position.coords.longitude);
             setLocationEnabled(true);
+            setTimeout(() => {
+              setloading(false);
+            }, 300);
           },
           () => {
             toast.error("Please enable location to proceed & Refresh the page");
             setLocationEnabled(false);
+            setTimeout(() => {
+              setloading(false);
+            }, 300);
           }
         );
       } else {
         toast.info("Geolocation is not supported by this browser");
         setLocationEnabled(false);
+        setTimeout(() => {
+          setloading(false);
+        }, 300);
       }
     }
 
@@ -95,7 +105,11 @@ function Permission() {
   };
   const handleConfirm = async () => {
     if (locationEnabled && bluetoothEnabled) {
+      setloading(true);
       toast.success("Raid Started");
+      setTimeout(() => {
+        setloading(false);
+      }, 300);
       navigate(`/raid-start-form/${raidId}`);
     } else {
       toast.error("Please enable both location and Bluetooth to proceed");
@@ -115,6 +129,8 @@ function Permission() {
       </div>
     );
   }
+
+  if (loading) return <Loading />;
 
   return (
     <>

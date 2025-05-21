@@ -3,15 +3,18 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import Navbar from "../components/Navbar";
+import Loading from "../components/Loading";
 
 function Unplanned() {
   const navigate = useNavigate();
   const [officers, setofficers] = useState([]);
   const today = new Date().toISOString().split("T")[0];
+  const [loading, setloading] = useState(false);
 
   // Gets all raid officer
 
   useEffect(() => {
+    setloading(true);
     const getOfficers = async () => {
       try {
         const res = await axios.get(
@@ -25,8 +28,12 @@ function Unplanned() {
         );
 
         setofficers(res.data.users);
+        setTimeout(() => {
+          setloading(false);
+        }, 300);
       } catch (error) {
         console.error("Failed to fetch officers:", error);
+        setloading(false);
       }
     };
 
@@ -107,6 +114,13 @@ function Unplanned() {
       );
     }
   };
+
+  if (loading)
+    return (
+      <>
+        <Loading />
+      </>
+    );
 
   return (
     <div className="min-h-screen bg-[#213448]">

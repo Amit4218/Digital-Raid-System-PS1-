@@ -9,12 +9,11 @@ const FinishedRaids = () => {
   const navigate = useNavigate();
   const [raids, setRaids] = useState([]);
   const [loading, setLoading] = useState(true);
-  
 
- 
   const inCharge = localStorage.getItem("inCharge");
 
   useEffect(() => {
+    setLoading(true);
     const fetchRaids = async () => {
       try {
         const res = await axios.get(
@@ -32,11 +31,16 @@ const FinishedRaids = () => {
         );
 
         setRaids(filtered);
+        setTimeout(() => {
+          setLoading(false);
+        }, 400);
       } catch (error) {
         console.error("Error fetching completed raids:", error);
         toast.error("Failed to fetch completed raids");
       } finally {
-        setLoading(false);
+        setTimeout(() => {
+          setLoading(false);  
+        }, 400);
       }
     };
 
@@ -100,7 +104,6 @@ const FinishedRaids = () => {
               <div className="md:col-span-2  flex justify-center ">
                 <button
                   onClick={() => handleHandover(raid._id)}
-                  
                   className="w-full md:w-auto px-3 py-1.5 rounded-md text-xs font-medium bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600/30 transition-colors"
                 >
                   Handover

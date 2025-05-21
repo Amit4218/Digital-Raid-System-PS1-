@@ -20,7 +20,7 @@ function App() {
         <Route path="/unplanned-raid" element={<Unplanned />} />
         <Route path="/permission" element={<Permission />} />
         <Route path="/raid-start-form/:id" element={<Planned />} />
-        <Route path= "/handover/:raidId" element={<Handover />} />
+        <Route path="/handover/:raidId" element={<Handover />} />
         <Route path="/Finished-raids" element={<FinishedRaids />} />
       </Routes>
       <ToastContainer theme="black" transition={Slide} autoClose={1000} />
