@@ -1,32 +1,84 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
-const RaidRequest = () => {
-  const dummyData = {
-    inCharge: "Thandup",
-    culpritName: "Amit",
-    identification: "666666666",
-    crimeDescription:
-      "Involvement in smuggling and organized crime activities.",
-    address: "Soreng bazar west sikkim",
-    scheduledDate: "19-5-2025",
-    description:
-      "This raid is scheduled based on intelligence reports linking the suspect to multiple illegal operations.",
-    warrantFile: "dummy_warrant.pdf",
-  };
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "react-toastify";
 
-  const handleApprove = () => {
-    console.log("Raid approved:", dummyData);
+const RaidRequest = () => {
+  const { raidId } = useParams();
+  const navigate = useNavigate();
+  const [raid, setRaid] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRaids = async () => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}/user/get-all-raids`,
+          {
+            headers: {
+              "x-access-key": import.meta.env.VITE_SECRET_ACCESS_KEY,
+            },
+          }
+        );
+
+        const filtered = res.data.raids.find((raid) => raid._id === raidId);
+        setRaid(filtered);
+      } catch (error) {
+        console.error("Error fetching unplanned raids:", error);
+        toast.error("Failed to fetch unplanned raids");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRaids();
+  }, [raidId]);
+
+  const handleApprove = async () => {
+    try {
+      const userId = localStorage.getItem("userId"); // Get userId from local storage
+      if (!userId) {
+        toast.error("User ID not found in local storage");
+        return;
+      }
+
+      const response = await axios.put(
+        `${
+          import.meta.env.VITE_BASE_URL
+        }/admin/update-unplanned-request/${raidId}`,
+        {
+          approvedBy: userId,
+          approvalStatus: "approved",
+          approvalDate: new Date(),
+        },
+        {
+          headers: {
+            "x-access-key": import.meta.env.VITE_SECRET_ACCESS_KEY,
+          },
+        }
+      );
+
+      toast.success("Raid approved successfully!");
+      navigate("/admin/unplannedRaids");
+    } catch (error) {
+      console.error("Error approving raid:", error);
+      toast.error("Failed to approve raid");
+    }
   };
+  
 
   const handlePreview = () => {
-    alert("Opening warrant: " + dummyData.warrantFile);
+    alert("Opening warrant: " + (raid?.warrant?.fileUrl || "No file"));
+    // Or open in new tab
+    // window.open(raid?.warrant?.fileUrl, '_blank');
   };
 
- 
-  const navigate = useNavigate()
- const handleClose = () => {
-   navigate('/admin/unplannedRaids')
- };
+  const handleClose = () => {
+    navigate("/admin/unplannedRaids");
+  };
+
+  if (loading) return <div className="p-6">Loading...</div>;
+  if (!raid) return <div className="p-6 text-red-600">Raid not found.</div>;
 
   return (
     <div className="p-6 min-h-screen bg-gray-50">
@@ -43,17 +95,26 @@ const RaidRequest = () => {
 
       <div className="bg-white border border-[#213448] shadow-2xl rounded-xl p-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Info label="Culprit Name" value={dummyData.culpritName} />
-          <Info label="Identification" value={dummyData.identification} />
+          <Info
+            label="Culprit Name"
+            value={raid.culprits?.[0]?.name || "N/A"}
+          />
+          <Info
+            label="Identification"
+            value={raid.culprits?.[0]?.identification || "N/A"}
+          />
           <Info
             label="Crime Description"
-            value={dummyData.crimeDescription}
+            value={raid.culprits?.[0]?.description || "N/A"}
             wide
           />
-          <Info label="Raid Officer (In-Charge)" value={dummyData.inCharge} />
-          <Info label="Raid Date" value={dummyData.scheduledDate} />
-          <Info label="Address" value={dummyData.address} wide />
-          <Info label="Raid Description" value={dummyData.description} wide />
+          <Info label="Raid Officer (In-Charge)" value={raid.inCharge} />
+          <Info
+            label="Raid Date"
+            value={new Date(raid.scheduledDate).toLocaleDateString()}
+          />
+          <Info label="Address" value={raid.location?.address || "N/A"} wide />
+          <Info label="Raid Description" value={raid.description} wide />
         </div>
 
         <div className="flex flex-col md:flex-row md:justify-between items-center gap-6 mt-4">
