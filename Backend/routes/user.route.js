@@ -228,6 +228,10 @@ router.post("/create-raid", async (req, res) => {
   }
 });
 
+
+
+
+
 // To get name of all the raid officer
 
 router.get("/get-all-raid-officers", async (req, res) => {
@@ -280,21 +284,9 @@ router.post("/raid/:id", async (req, res) => {
 
 //handover route
 
-// 🔐 Function to generate hash from digital signatures
-function generateSignatureHash(fromSignature, toSignature) {
-  const data = `${fromSignature}:${toSignature}`;
-  return crypto.createHash("sha256").update(data).digest("hex");
-}
-
 router.post("/handover/:raidId", async (req, res) => {
   const { raidId } = req.params;
-  const { exhibitIds, custodyChain, notificationsSent } = req.body;
-
-  if (!exhibitIds || !Array.isArray(exhibitIds) || exhibitIds.length === 0) {
-    return res
-      .status(400)
-      .json({ message: "Exhibit IDs are required and must be an array." });
-  }
+  const { exhibitId, custodyChain, exhibitType, itemDescription } = req.body;
 
   if (
     !custodyChain ||
@@ -307,11 +299,38 @@ router.post("/handover/:raidId", async (req, res) => {
   }
 
   try {
+    const latestChain = custodyChain[custodyChain.length - 1];
+
+    if (
+      !latestChain?.digitalSignatures?.fromSignature ||
+      !latestChain?.digitalSignatures?.toSignature
+    ) {
+      return res.status(400).json({
+        message:
+          "Digital signatures are required for both sender and receiver.",
+      });
+    }
+
+    // Generate hashes
+    const { fromHash, toHash, combinedHash } = generateSignatureHash(
+      latestChain.digitalSignatures.fromSignature,
+      latestChain.digitalSignatures.toSignature
+    );
+
     const newRecord = new HandoverRecord({
       raidId,
       exhibitType,
-      exhibitIds,
-      custodyChain: [custodyEntry], // Initial custody entry
+      exhibitId,
+      itemDescription,
+      custodyChain: custodyChain.map((entry) => ({
+        ...entry,
+        digitalSignatures: {
+          ...entry.digitalSignatures,
+          fromSignatureHash: fromHash,
+          toSignatureHash: toHash,
+          signaturesHash: combinedHash, // original combined hash
+        },
+      })),
       notificationsSent: {
         toHead: true,
         toInCharge: true,
@@ -319,20 +338,34 @@ router.post("/handover/:raidId", async (req, res) => {
       },
     });
 
-    await handoverRecord.save();
+    await newRecord.save();
 
     res.status(201).json({
       success: true,
       message: "Handover record created successfully",
-      data: handoverRecord,
+      data: newRecord,
     });
   } catch (error) {
     console.error("Error creating handover record:", error);
-    res
-      .status(500)
-      .json({ message: "Server error while creating handover record." });
+    res.status(500).json({
+      message: "Server error while creating handover record.",
+      error: error.message,
+    });
   }
 });
+
+
+  function generateSignatureHash(fromSignature, toSignature) {
+    return {
+      fromHash: crypto.createHash("sha256").update(fromSignature).digest("hex"),
+      toHash: crypto.createHash("sha256").update(toSignature).digest("hex"),
+      combinedHash: crypto
+        .createHash("sha256")
+        .update(`${fromSignature}:${toSignature}`)
+        .digest("hex"),
+    };
+  }
+  
 
 // To get all raids
 
@@ -677,6 +710,30 @@ router.get("/licence/:licenceId", async (req, res) => {
     return res.status(200).json({ message: "success", licence });
   } catch (error) {
     console.error("Licence route error:", error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+});
+
+//get all evidence having same raidId
+router.get("/evidence/:raidId", async (req, res) => {
+  const { raidId } = req.params;
+
+  try {
+    if (!raidId) {
+      return res.status(400).json({ message: "Please provide raidId!" });
+    }
+
+    const evidence = await Evidence.find({ raidId });
+
+    if (!evidence) {
+      return res
+        .status(400)
+        .json({ message: "The evidence doesn't exist in the DB" });
+    }
+
+    return res.status(200).json({ message: "success", evidence });
+  } catch (error) {
+    console.error("Evidence route error:", error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 });

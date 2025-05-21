@@ -6,7 +6,9 @@ import { toast } from "react-toastify";
 const EvidenceHandover = () => {
   const navigate = useNavigate();
   const { raidId } = useParams();
+  const [exhibits, setExhibits] = useState([]);
   const [officers, setOfficers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [currentOfficer, setCurrentOfficer] = useState(null);
   const [formData, setFormData] = useState({
     receiverType: "Internal",
@@ -19,6 +21,7 @@ const EvidenceHandover = () => {
       email: "",
     },
     exhibitType: "",
+    exhibitId: "",
     itemDescription: "",
     purpose: "",
     fromSignature: "",
@@ -51,6 +54,59 @@ const EvidenceHandover = () => {
 
     getOfficers();
   }, []);
+
+  // Get evidence exhibit Type
+  useEffect(() => {
+    const getExhibits = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}/user/evidence/${raidId}`,
+          {
+            headers: {
+              "x-access-key": import.meta.env.VITE_SECRET_ACCESS_KEY,
+            },
+          }
+        );
+
+        console.log("API Response:", res.data);
+
+        // Access the evidence array from the response
+        const exhibitsData = res.data.evidence || [];
+
+        if (exhibitsData.length === 0) {
+          toast.info("No exhibits found for this raid");
+        }
+
+        setExhibits(exhibitsData);
+      } catch (error) {
+        console.error("Failed to fetch exhibit data:", error);
+        toast.error("Failed to load exhibit data");
+        setExhibits([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getExhibits();
+  }, [raidId]);
+
+  // Update exhibit ID when exhibit type changes
+  useEffect(() => {
+    if (formData.exhibitType && exhibits.length > 0) {
+      const selectedExhibit = exhibits.find(
+        (exhibit) => exhibit.exhibitType === formData.exhibitType
+      );
+
+      if (selectedExhibit) {
+        setFormData((prev) => ({
+          ...prev,
+          exhibitId: selectedExhibit.exhibitId,
+          itemDescription: selectedExhibit.description || "",
+        }));
+      }
+    }
+  }, [formData.exhibitType, exhibits]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -100,23 +156,33 @@ const EvidenceHandover = () => {
     const selectedOfficer = officers.find(
       (officer) => officer.username === formData.receiverName
     );
-
-    // Prepare payload matching backend model
-    const payload = {
-      raidId,
-      exhibitType: formData.exhibitType,
-      exhibitIds: "EXH-MUM-789-001",
+    
+    const custodyEntry = {
       handoverFrom: {
         userId: currentOfficer?._id,
+        username: currentOfficer?.username,
       },
       handoverTo: {
         userId: isExternal ? null : selectedOfficer?._id,
+        username: isExternal ? null : selectedOfficer?.username,
         externalDetails: isExternal ? formData.externalReceiverDetails : null,
       },
       purpose: formData.purpose,
+      digitalSignatures: {
+        fromSignature: formData.fromSignature,
+        toSignature: formData.toSignature || "Pending",
+      },
+      timestamp: new Date().toISOString(),
       itemDescription: formData.itemDescription,
-      fromSignature: formData.fromSignature,
-      toSignature: formData.toSignature || "Pending", // Will be completed by receiver
+    };
+
+    // Prepare payload
+    const payload = {
+      raidId,
+      exhibitType: formData.exhibitType,
+      exhibitId: formData.exhibitId,
+      custodyChain: [custodyEntry], // Send as array with the entry
+      itemDescription: formData.itemDescription,
     };
 
     try {
@@ -162,25 +228,48 @@ const EvidenceHandover = () => {
             />
           </div>
 
-          {/* Exhibit Information */}
-          <div>
-            <label className="block text-gray-300 text-sm font-medium mb-2">
-              Exhibit Type
-            </label>
-            <select
-              name="exhibitType"
-              value={formData.exhibitType}
-              onChange={handleChange}
-              className="py-3 px-4 bg-[#3a4e66] border border-[#4a607a] rounded-md focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none w-full text-white"
-              required
-            >
-              <option value="">Select exhibit type</option>
-              <option value="drugs">Drugs</option>
-              <option value="money">Money</option>
-              <option value="weapons">Weapons</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
+          {loading ? (
+            <div className="py-3 px-4 bg-[#3a4e66] rounded-md text-white">
+              Loading exhibit data...
+            </div>
+          ) : exhibits.length > 0 ? (
+            <div>
+              <label className="block text-gray-300 text-sm font-medium mb-2">
+                Exhibit Type
+              </label>
+              <select
+                name="exhibitType"
+                value={formData.exhibitType}
+                onChange={handleChange}
+                className="py-3 px-4 bg-[#3a4e66] border border-[#4a607a] rounded-md focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none w-full text-white"
+                required
+              >
+                <option value="">Select exhibit type</option>
+                {exhibits.map((exhibit) => (
+                  <option key={exhibit._id} value={exhibit.exhibitType}>
+                    {exhibit.exhibitType} (ID: {exhibit.exhibitId})
+                  </option>
+                ))}
+              </select>
+
+              {formData.exhibitId && (
+                <div className="mt-4 ">
+                  <label className="block text-gray-300 text-sm font-medium mb-2">
+                    Exhibit Details
+                  </label>
+                  <div className="bg-[#3a4e66] p-4 rounded-md">
+                    <p className="text-white">Type: {formData.exhibitType}</p>
+                    <p className="text-white">ID: {formData.exhibitId}</p>
+                    <p className="text-white"></p>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="py-3 px-4 bg-[#3a4e66] rounded-md text-white">
+              No exhibits available for this raid
+            </div>
+          )}
 
           <div className="md:col-span-2">
             <label className="block text-gray-300 text-sm font-medium mb-2">
@@ -339,12 +428,25 @@ const EvidenceHandover = () => {
           {/* Digital Signatures */}
           <div className="md:col-span-2">
             <label className="block text-gray-300 text-sm font-medium mb-2">
-              Your Signature (Initials)
+             Giver Secure String (Initials)
             </label>
             <input
-              type="text"
+              type="password"
               name="fromSignature"
               value={formData.fromSignature}
+              onChange={handleChange}
+              className="py-3 px-4 bg-[#3a4e66] border border-[#4a607a] rounded-md focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none w-full text-white"
+              required
+            />
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-gray-300 text-sm font-medium mb-2">
+             Reciver Secure String (Initials)
+            </label>
+            <input
+              type="password"
+              name="toSignature"
+              value={formData.toSignature}
               onChange={handleChange}
               className="py-3 px-4 bg-[#3a4e66] border border-[#4a607a] rounded-md focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none w-full text-white"
               required

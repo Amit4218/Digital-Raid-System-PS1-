@@ -127,6 +127,52 @@ router.post("/create-raid", async (req, res) => {
   }
 });
 
+
+//update unplanned raid
+router.put("/update-unplanned-request/:raidId", async (req, res) => {
+  const { raidId } = req.params;
+  const { approvedBy, approvalStatus, approvalDate, rejectionReason } =
+    req.body;
+
+  try {
+    // Validate input
+    if (!["approved", "rejected", "pending"].includes(approvalStatus)) {
+      return res.status(400).json({ message: "Invalid approval status" });
+    }
+
+    const updatePayload = {
+      "unplannedRequestDetails.approvalStatus": approvalStatus,
+      "unplannedRequestDetails.approvedBy": approvedBy || null,
+      "unplannedRequestDetails.approvalDate":
+        approvalStatus === "approved" ? approvalDate || new Date() : null,
+      "unplannedRequestDetails.rejectionReason":
+        approvalStatus === "rejected"
+          ? rejectionReason || "Not specified"
+          : null,
+    };
+
+    const updatedRaid = await Raid.findByIdAndUpdate(
+      raidId,
+      { $set: updatePayload },
+      { new: true }
+    );
+
+    if (!updatedRaid) {
+      return res.status(404).json({ message: "Raid not found" });
+    }
+
+    res.status(200).json({
+      message: "Unplanned raid request updated successfully",
+      data: updatedRaid,
+    });
+  } catch (error) {
+    console.error("Error updating unplanned raid request:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+
+
 //creating logs report
 
 router.post("/create-log", async (req, res) => {
