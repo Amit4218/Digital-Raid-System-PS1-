@@ -11,9 +11,9 @@ import Loading from "../components/Loading";
 function Planned() {
   const { id } = useParams();
   const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [writtemReport, setwrittemReport] = useState("");
+  const [writtenReport, setwrittenReport] = useState("");
   const crimainalId = localStorage.getItem("criminalId");
   const licenceId = localStorage.getItem("licenceId");
   const evidenceId = localStorage.getItem("evidenceId");
@@ -21,17 +21,26 @@ function Planned() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    setLoading(true);
     const getRaidInfo = async () => {
       try {
         const res = await axios.post(
           `${import.meta.env.VITE_BASE_URL}/user/raid/${id}`
         );
         setData(res.data.info);
+        setTimeout(() => {
+          setLoading(false);
+        }, 500);
       } catch (err) {
         setError(err.message || "Failed to fetch raid info");
         console.error(err);
+        setTimeout(() => {
+          setLoading(false);
+        }, 500);
       } finally {
-        setLoading(false);
+        setTimeout(() => {
+          setLoading(false);
+        }, 500);
       }
     };
     getRaidInfo();
@@ -64,13 +73,15 @@ function Planned() {
   if (error) return <div className="p-4 text-red-500">{error}</div>;
   if (!data) return <div className="p-4">No data found</div>;
 
-  const info = { crimainalId, licenceId, evidenceId, raidId, writtemReport };
+  const info = { crimainalId, licenceId, evidenceId, raidId, writtenReport };
+  console.log(info);
 
   const SubmitRaid = async () => {
     const confirm = prompt(
       "Are you sure ? This can't be undone ! please type CONFIRM "
     );
     if (confirm === "CONFIRM") {
+      setLoading(true);
       const res = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/user/confirm-raid`,
         info
@@ -78,11 +89,17 @@ function Planned() {
       console.log(res);
       if (res.status == 200) {
         toast.success("Raid Completed Successfully");
+        setTimeout(() => {
+          setLoading(false);
+        }, 500);
         navigate("/raidPage");
         localStorage.removeItem("criminalId");
         localStorage.removeItem("criminalId");
         localStorage.removeItem("raidId");
       } else {
+        setTimeout(() => {
+          setLoading(false);
+        }, 500);
         toast.error("Something went wrong, Please Re-submmit again");
       }
     }
@@ -313,9 +330,13 @@ function Planned() {
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={downloadWarrant}
-                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md text-sm focus:outline-none focus:shadow-outline transition-colors duration-200"
+                className={
+                  !data.warrant.fileUrl
+                    ? "hidden"
+                    : "bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md text-sm focus:outline-none focus:shadow-outline transition-colors duration-200"
+                }
               >
-                Download Warrent
+                {!data.warrant.fileUrl ? "Not Uploaded" : "Download Warrent"}
               </button>
             </div>
           </div>
@@ -332,9 +353,9 @@ function Planned() {
               <textarea
                 className="w-full border shadow-md rounded outline-none p-5"
                 placeholder="Enter a summury of the raid"
-                value={writtemReport}
+                value={writtenReport}
                 onChange={(e) => {
-                  setwrittemReport(e.target.value);
+                  setwrittenReport(e.target.value);
                 }}
                 name="written-report"
                 id="written-report"

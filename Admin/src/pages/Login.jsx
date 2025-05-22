@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import Loading from "../component/Loading";
 import axios from "axios";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setloading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -15,6 +17,7 @@ function Login() {
 
   const loginHandler = async (e) => {
     e.preventDefault();
+    setloading(true);
 
     try {
       const r = await axios.post(
@@ -29,16 +32,27 @@ function Login() {
           "adminpicture",
           r.data.user.personalDetails.picture
         );
+        setTimeout(() => {
+          setloading(false);
+        }, 500);
 
         navigate("/admin");
         toast.success("Logged in successfully");
       } else {
+        setTimeout(() => {
+          setloading(false);
+        }, 300);
         toast.error(r.data.message);
       }
     } catch (err) {
+      setTimeout(() => {
+        setloading(false);
+      }, 300);
       toast.error("Something went wrong");
     }
   };
+
+  if (loading) return <Loading />;
 
   return (
     <div className="h-screen flex items-center justify-center bg-zinc-900">

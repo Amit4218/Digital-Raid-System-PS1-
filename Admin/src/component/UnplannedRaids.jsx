@@ -43,7 +43,6 @@ const UnplannedRaids = () => {
   const handleReview = (raidId) => {
     navigate(`/admin/unplanned-request/${raidId}`);
   };
-  
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-[#f8fafc] pt-20 pb-8">
