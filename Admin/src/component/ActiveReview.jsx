@@ -10,7 +10,6 @@ const ActiveReview = () => {
 
   const [loading, setLoading] = useState(true);
   const [raidData, setRaidData] = useState(null);
-  const dummyWarrantURL = "https://photricity.com/flw";
 
   useEffect(() => {
     const fetchRaids = async () => {
@@ -44,13 +43,6 @@ const ActiveReview = () => {
     fetchRaids();
   }, [raidId, navigate]);
 
-  const handleDownload = () => {
-    const link = document.createElement("a");
-    link.href = dummyWarrantURL;
-    link.download = "warrant.png";
-    link.click();
-  };
-
   const handleClose = () => {
     navigate("/admin/raids");
   };
@@ -73,6 +65,27 @@ const ActiveReview = () => {
     scheduledDate: raidData.scheduledDate || "",
     description: raidData.description || "",
     crimeDescription: raidData.culprits[0].description || "",
+  };
+
+  console.log(raidData.warrant?.fileUrl);
+
+  const downloadWarrant = () => {
+    const fileUrl = raidData.warrant?.fileUrl; // "/uploads/warrant-1747837969061.pdf"
+    if (!fileUrl) return;
+
+    const filename = fileUrl.split("/").pop(); // "warrant-1747837969061.pdf"
+    const downloadUrl = `${
+      import.meta.env.VITE_BASE_URL
+    }/user/download/${filename}`;
+
+    console.log("Download URL:", downloadUrl); // Debug log
+
+    const link = document.createElement("a");
+    link.href = downloadUrl;
+    link.download = "warrant.pdf";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -182,9 +195,6 @@ const ActiveReview = () => {
               defaultValue={description}
               readOnly
             />
-            <p className="text-sm text-gray-500 mt-2 break-all">
-              Warrant URL: {dummyWarrantURL}
-            </p>
           </div>
         </div>
 
@@ -193,7 +203,7 @@ const ActiveReview = () => {
             <div className="flex flex-wrap justify-between w-full items-center">
               <div className="flex gap-4 flex-wrap">
                 <button
-                  onClick={handleDownload}
+                  onClick={downloadWarrant}
                   className="bg-[#213448] text-white font-bold px-4 py-2 rounded hover:bg-[#547792]"
                 >
                   Download Warrant

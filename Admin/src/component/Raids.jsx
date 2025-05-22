@@ -13,6 +13,7 @@ function Raids() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     const fetchRaids = async () => {
       try {
         const res = await axios.get(
@@ -36,9 +37,11 @@ function Raids() {
         );
 
         setRaids(filtered);
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching raids:", error);
         toast.error("Failed to fetch raids");
+        setLoading(false);
       } finally {
         setLoading(false);
       }
@@ -59,7 +62,7 @@ function Raids() {
         // culprit: raid.culprits?.[0]?.name || "N/A",
         address: raid.location?.address || "N/A",
         // type: raid.raidType || "N/A",
-        className: `hover:bg-[#f8fafc] cursor-pointer ${
+        className: ` hover:bg-[#f8fafc] cursor-pointer ${
           idx % 2 === 0 ? "even:bg-[#f8fafc]" : "odd:bg-white"
         }`,
       };
@@ -91,7 +94,7 @@ function Raids() {
     });
 
   return (
-    <div className="flex flex-col items-center max-h-[90vh] bg-[#f8fafc] pt-20 pb-8">
+    <div className="flex flex-col items-center max-h-[90vh] bg-[#f8fafc] pt-20 pb-8 ">
       <div className="w-4/5 mx-auto bg-white rounded-xl shadow-lg overflow-y-scroll no-scrollbar border border-[#e2e8f0]">
         <div className="grid grid-cols-6 gap-4 bg-[#213448] p-4 font-semibold text-white">
           <div>Raid ID</div>
@@ -103,7 +106,7 @@ function Raids() {
 
         <div className="divide-y divide-[#e2e8f0]">
           {loading ? (
-            <div className="p-4 text-center text-gray-600">Loading...</div>
+            <div className="p-4 text-center text-gray-600 ">Loading...</div>
           ) : raids.length === 0 ? (
             <div className="p-4 text-center text-gray-600">No raids found.</div>
           ) : (

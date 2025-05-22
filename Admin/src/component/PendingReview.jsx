@@ -60,17 +60,27 @@ const PendingReview = () => {
     navigate("/admin/raids");
   };
 
-  const handleFileClick = () => {
-    fileInputRef.current.click();
-  };
+  // const handleFileClick = () => {
+  //   fileInputRef.current.click();
+  // };
 
-  const handleDownload = () => {
+  const downloadWarrant = () => {
+    const fileUrl = raidData.warrant?.fileUrl; // "/uploads/warrant-1747837969061.pdf"
+    if (!fileUrl) return;
+
+    const filename = fileUrl.split("/").pop(); // "warrant-1747837969061.pdf"
+    const downloadUrl = `${
+      import.meta.env.VITE_BASE_URL
+    }/user/download/${filename}`;
+
+    console.log("Download URL:", downloadUrl); // Debug log
+
     const link = document.createElement("a");
-    link.href = warrantFile
-      ? URL.createObjectURL(warrantFile)
-      : dummyWarrantURL;
-    link.download = "warrant.png";
+    link.href = downloadUrl;
+    link.download = "warrant.pdf";
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
   };
 
   const currentWarrantURL = warrantFile
@@ -79,14 +89,7 @@ const PendingReview = () => {
 
   if (loading || !raidData) return <div className="p-6">Loading...</div>;
 
-  const {
-    culprits,
-    inCharge,
-    address,
-    status,
-    scheduledDate,
-    description,
-  } = {
+  const { culprits, inCharge, address, status, scheduledDate, description } = {
     culprits: raidData.culprits || [],
     inCharge: raidData.inCharge || "",
     address: raidData.location.address || "",
@@ -205,9 +208,9 @@ const PendingReview = () => {
               defaultValue={description}
               readOnly
             />
-            <p className="text-sm text-gray-500 mt-2 break-all">
+            {/* <p className="text-sm text-gray-500 mt-2 break-all">
               Warrant URL: {currentWarrantURL}
-            </p>
+            </p> */}
           </div>
         </div>
 
@@ -215,12 +218,12 @@ const PendingReview = () => {
           <div className="flex flex-col items-center w-full">
             <div className="flex flex-wrap justify-between w-full items-center">
               <div className="flex gap-4 flex-wrap">
-                <button
+                {/* <button
                   onClick={handleFileClick}
                   className="bg-[#213448] text-white font-bold px-4 py-2 rounded hover:bg-[#547792]"
                 >
                   Update Warrant
-                </button>
+                </button> */}
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -229,7 +232,7 @@ const PendingReview = () => {
                 />
 
                 <button
-                  onClick={handleDownload}
+                  onClick={downloadWarrant}
                   className="bg-[#213448] text-white font-bold px-4 py-2 rounded hover:bg-[#547792]"
                 >
                   Download Warrant

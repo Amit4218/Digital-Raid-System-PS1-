@@ -1,9 +1,17 @@
 import React, { useState } from "react";
 import EvidenceHandover from "../components/EvidenceHandover";
 import CustodyHandover from "../components/CustodyHandover";
+import Loading from "../components/Loading";
 
 const Handover = () => {
   const [chooseHandover, setChooseHandover] = useState(true);
+  const [loading, setloading] = useState(true);
+
+  setTimeout(() => {
+    setloading(false);
+  }, 500);
+
+  if (loading) return <Loading />;
 
   return (
     <div className="p-10 px-15 text-white">
