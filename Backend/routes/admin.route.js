@@ -131,8 +131,7 @@ router.post("/create-raid", async (req, res) => {
 //update unplanned raid
 router.put("/update-unplanned-request/:raidId", async (req, res) => {
   const { raidId } = req.params;
-  const { approvedBy, approvalStatus, approvalDate, rejectionReason } =
-    req.body;
+  const { approvedBy, approvalStatus, approvalDate, warrant } = req.body;
 
   try {
     // Validate input
@@ -140,30 +139,26 @@ router.put("/update-unplanned-request/:raidId", async (req, res) => {
       return res.status(400).json({ message: "Invalid approval status" });
     }
 
-    const updatePayload = {
-      "unplannedRequestDetails.approvalStatus": approvalStatus,
-      "unplannedRequestDetails.approvedBy": approvedBy || null,
-      "unplannedRequestDetails.approvalDate":
-        approvalStatus === "approved" ? approvalDate || new Date() : null,
-      "unplannedRequestDetails.rejectionReason":
-        approvalStatus === "rejected"
-          ? rejectionReason || "Not specified"
-          : null,
-    };
-
-    const updatedRaid = await Raid.findByIdAndUpdate(
-      raidId,
-      { $set: updatePayload },
-      { new: true }
-    );
-
-    if (!updatedRaid) {
-      return res.status(404).json({ message: "Raid not found" });
-    }
+    const raid = await Raid.findByIdAndUpdate(raidId, {
+      warrant: {
+        fileUrl: warrant.fileUrl,
+        hash: crypto.createHash("sha256").update(String(warrant)).digest("hex"),
+        uploadedAt: Date.now(),
+      },
+      raidApproved: {
+        isApproved: true,
+        approvedBy,
+        approvalDate: approvalDate,
+      },
+      unplannedRequestDetails: {
+        approvalStatus: approvalStatus,
+        approvedBy,
+      },
+    });
 
     res.status(200).json({
       message: "Unplanned raid request updated successfully",
-      data: updatedRaid,
+      data: raid,
     });
   } catch (error) {
     console.error("Error updating unplanned raid request:", error);
