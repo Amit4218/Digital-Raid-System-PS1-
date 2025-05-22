@@ -139,6 +139,25 @@ const raidSchema = new mongoose.Schema(
         default: null,
       },
     },
+    raidApproved: {
+      isApproved: {
+        type: Boolean,
+        default: false,
+      },
+      approvedBy: {
+        type: mongoose.Schema.ObjectId,
+        ref: "user",
+        default: null,
+      }, // Reference to Users
+      raidHash: {
+        type: String,
+        default: null,
+      }, // For integrity verification
+      approvalDate: {
+        type: Date,
+        default: null,
+      },
+    },
   },
   { timestamps: true }
 );

@@ -145,7 +145,7 @@ router.put("/update-cordinates", async (req, res) => {
     }
 
     const officer = await User.findById(raid.inchargeId);
-    const admin = await User.findById(raid.unplannedRequestDetails.approvedBy);
+    const admin = await User.findById(raid.raidApproved.approvedBy);
 
     if (!officer || !admin) {
       return res.status(404).json({ message: "User not found" });
@@ -501,7 +501,7 @@ router.post("/save-record", async (req, res) => {
 });
 
 router.post("/confirm-raid", async (req, res) => {
-  const { crimainalId, licenceId, evidenceId, raidId, writtemReport } =
+  const { crimainalId, licenceId, evidenceId, raidId, writtenReport } =
     req.body;
 
   console.log(crimainalId, licenceId, evidenceId, raidId);
@@ -518,7 +518,7 @@ router.post("/confirm-raid", async (req, res) => {
     const raid = await Raid.findByIdAndUpdate(raidId, {
       status: "completed",
       evidenceId,
-      writtenReport: writtemReport,
+      writtenReport,
       actualEndDate: Date.now(),
       licence: {
         holderName: licence.licenceHolder || null,
@@ -537,6 +537,8 @@ router.post("/confirm-raid", async (req, res) => {
     }
 
     const Emails = [officer.email, admin.email];
+    console.log(Emails);
+
     const data = {
       subject: "Raid Completation Notification",
       text: `A Raid has successfully completed \n\nRaid Details :\n Raid Id: ${raidId},\n Started By : ${raid.inCharge},\n Raid Address : ${raid.location.address},\n Raid Coordinates : Latitude : ${raid.location.coordinates.latitude}, Longitude: ${raid.location.coordinates.longitude}\n Raid Started At : ${raid.actualStartDate},\n Raid Completed at : ${raid.actualEndDate}`,
@@ -546,6 +548,7 @@ router.post("/confirm-raid", async (req, res) => {
     for (let i = 0; i < Emails.length; i++) {
       try {
         const mail = await sendEmail(Emails[i], data);
+
         // console.log(mail);
       } catch (emailError) {
         console.error(`Failed to send email to ${Emails[i]}:`, emailError);
