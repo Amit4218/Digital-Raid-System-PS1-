@@ -4,8 +4,10 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Loading from "../components/Loading";
+import TokenValidator from "../utils/tokenValidator";
 
 const FinishedRaids = () => {
+  TokenValidator();
   const navigate = useNavigate();
   const [raids, setRaids] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,7 +41,7 @@ const FinishedRaids = () => {
         toast.error("Failed to fetch completed raids");
       } finally {
         setTimeout(() => {
-          setLoading(false);  
+          setLoading(false);
         }, 400);
       }
     };

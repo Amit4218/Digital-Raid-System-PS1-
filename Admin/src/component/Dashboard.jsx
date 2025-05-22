@@ -1,8 +1,10 @@
 import React from "react";
 import Heatmap from "./Heatmap";
 import RaidStatusGraph from "./graphs/RaidStatusGraph";
+import TokenValidator from "../utils/tokenValidator";
 
 const Dashboard = () => {
+  TokenValidator();
   return (
     <div className="w-[100vw] h-[93vh] p-10 flex justify-between items-center">
       <div className="w-[40vw] h-full flex flex-col gap-5 p-10">

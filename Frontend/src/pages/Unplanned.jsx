@@ -4,8 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import Navbar from "../components/Navbar";
 import Loading from "../components/Loading";
+import TokenValidator from "../utils/tokenValidator";
 
 function Unplanned() {
+  TokenValidator();
+
   const navigate = useNavigate();
   const [officers, setofficers] = useState([]);
   const today = new Date().toISOString().split("T")[0];
