@@ -2,8 +2,12 @@ import React, { useState } from "react";
 import EvidenceHandover from "../components/EvidenceHandover";
 import CustodyHandover from "../components/CustodyHandover";
 import Loading from "../components/Loading";
+import TokenValidator from "../utils/tokenValidator";
+
 
 const Handover = () => {
+  TokenValidator();
+
   const [chooseHandover, setChooseHandover] = useState(true);
   const [loading, setloading] = useState(true);
 

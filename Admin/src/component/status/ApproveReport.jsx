@@ -91,7 +91,7 @@ const ApproveReport = () => {
       setApproveError(null);
 
       // Get current user ID from local storage or context
-      const approvedBy = localStorage.getItem("userId"); // Adjust based on your auth system
+      const approvedBy = localStorage.getItem("adminId"); // Adjust based on your auth system
 
       if (!approvedBy) {
         throw new Error("User information not available");

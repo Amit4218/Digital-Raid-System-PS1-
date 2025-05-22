@@ -4,8 +4,10 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import Loading from "../components/Loading";
 import Navbar from "../components/Navbar";
+import TokenValidator from "../utils/tokenValidator";
 
 function RaidPage() {
+  TokenValidator();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [raids, setRaids] = useState([]);
@@ -46,12 +48,21 @@ function RaidPage() {
       return raid.unplannedRequestDetails.approvalStatus === "approved";
     }
 
-    return raid.status === "pending";
+    return raid.status === "pending" && raid.raidApproved?.isApproved === true;
   }
 
   const handleStartRaid = (raidId) => {
     navigate("/permission", { state: { raidId } });
   };
+
+  // Filter raids based on conditions
+  const filteredRaids = raids.filter((raid) => {
+    const isApproved = raid.raidApproved?.isApproved === true;
+    const isPending = raid.status === "pending";
+    const isActive = raid.status === "active";
+
+    return (isApproved && isPending) || isActive;
+  });
 
   if (loading) return <Loading />;
 
@@ -71,12 +82,12 @@ function RaidPage() {
           </div>
 
           {/* Content */}
-          {!raids || raids.length === 0 ? (
+          {!filteredRaids || filteredRaids.length === 0 ? (
             <div className="flex items-center justify-center text-gray-400 h-full">
               No raids found.
             </div>
           ) : (
-            raids.map((raid, idx) => (
+            filteredRaids.map((raid, idx) => (
               <div
                 key={raid._id || idx}
                 className="flex flex-col md:grid md:grid-cols-13 gap-2 md:gap-4 border-b border-zinc-700/50 py-4 text-sm hover:bg-zinc-700/40 transition-colors last:border-b-0"

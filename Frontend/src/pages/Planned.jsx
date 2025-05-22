@@ -7,8 +7,10 @@ import UploadImage from "../components/UploadImage";
 import UploadVideo from "../components/UploadVideo";
 import { toast } from "react-toastify";
 import Loading from "../components/Loading";
+import TokenValidator from "../utils/tokenValidator";
 
 function Planned() {
+  TokenValidator();
   const { id } = useParams();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);

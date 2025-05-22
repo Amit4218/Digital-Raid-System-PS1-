@@ -21,7 +21,7 @@ const CompletedReview = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showApproveReport, setShowApproveReport] = useState(false); 
+  const [showApproveReport, setShowApproveReport] = useState(false);
   useEffect(() => {
     const fetchData = async () => {
       try {

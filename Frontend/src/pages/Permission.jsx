@@ -4,11 +4,14 @@ import Navbar from "../components/Navbar";
 import { toast } from "react-toastify";
 import axios from "axios";
 import Loading from "../components/Loading";
+import TokenValidator from "../utils/tokenValidator";
+
 function Permission() {
+  TokenValidator();
   const location = useLocation();
   const navigate = useNavigate();
-  const [latitude, setLatitude] = useState(null);
-  const [longitude, setLongitude] = useState(null);
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
   const [loading, setloading] = useState(false);
   const [locationEnabled, setLocationEnabled] = useState(false);
   const [bluetoothEnabled, setBluetoothEnabled] = useState(false);
