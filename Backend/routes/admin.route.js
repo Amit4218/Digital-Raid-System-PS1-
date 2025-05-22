@@ -168,7 +168,7 @@ router.put("/update-unplanned-request/:raidId", async (req, res) => {
 
 // get all evidence of the raid
 
-router.post("/raid-evidence", async (req, res) => {
+router.post("/raid-evidence/:raidId", async (req, res) => {
   const { raidId } = req.params;
 
   try {
@@ -182,13 +182,13 @@ router.post("/raid-evidence", async (req, res) => {
       return res.status(400).json({ message: "Raid dosent exists" });
     }
 
-    const evidence = Evidence.find(raidId);
+    const evidence = await Evidence.find({ raidId: raidId });
 
-    if (!evidence) {
-      return res.status(400).json({ message: "Evidence Dosent exists" });
-    }
+    // if (!evidence) {
+    //   return res.status(400).json({ message: "Evidence Dosent exists" });
+    // }
 
-    res.status(200).json({ message: "Success", raid, evidence });
+    res.status(200).json({ message: "Success", data: { raid, evidence } });
   } catch (error) {
     res.status(500).json({ message: error?.message });
   }
@@ -412,5 +412,84 @@ router.post("/upload-warrant", upload.single("warrant"), (req, res) => {
     fileName: req.file.filename,
   });
 });
+
+
+// PUT route to approve a completed raid
+router.put("/raid-approve/:id", async (req, res) => {
+  try {
+    const raidId = req.params.id;
+    const { approvedBy } = req.body; // Expecting approvedBy user ID in request body
+
+    // Validate input
+    if (!approvedBy) {
+      return res.status(400).json({ message: "approvedBy is required" });
+    }
+
+    // Find the raid
+    const raid = await Raid.findById(raidId);
+    
+    if (!raid) {
+      return res.status(404).json({ message: "Raid not found" });
+    }
+
+    // Check if raid is in 'completed' status
+    if (raid.status !== "completed") {
+      return res.status(400).json({ 
+        message: "Raid must be in 'completed' status to be approved" 
+      });
+    }
+
+    // Generate a hash using important raid parameters
+    const hashData = {
+      raidId: raid._id.toString(),
+      createdBy: raid.createdBy.toString(),
+      inchargeId: raid.inchargeId.toString(),
+      evidenceId: raid.evidenceId?.toString() || "no_evidence",
+      description: raid.description,
+      actualStartDate: raid.actualStartDate?.toISOString() || "no_start_date",
+      actualEndDate: raid.actualEndDate?.toISOString() || "no_end_date",
+      culpritsCount: raid.culprits.length,
+      location: raid.location.address,
+      status: "completed_approved",
+      timestamp: new Date().toISOString(),
+      approvedBy: approvedBy
+    };
+
+    // Convert the hash data to a string and create a hash
+    const hashString = JSON.stringify(hashData);
+    const raidHash = crypto
+      .createHash("sha256")
+      .update(hashString)
+      .digest("hex");
+
+    // Update the raid
+    const updatedRaid = await Raid.findByIdAndUpdate(
+      raidId,
+      {
+        status: "completed_approved",
+        raidApproved: {
+          isApproved: true,
+          approvedBy: approvedBy,
+          raidHash: raidHash,
+          approvalDate: new Date()
+        }
+      },
+      { new: true } // Return the updated document
+    );
+
+    res.status(200).json({
+      message: "Raid approved successfully",
+      raid: updatedRaid
+    });
+
+  } catch (error) {
+    console.error("Error approving raid:", error);
+    res.status(500).json({ 
+      message: "Internal server error",
+      error: error.message 
+    });
+  }
+});
+
 
 export default router;

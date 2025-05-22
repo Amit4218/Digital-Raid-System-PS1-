@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate,useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
 const EvidenceHandover = () => {
@@ -11,8 +11,16 @@ const EvidenceHandover = () => {
   const [loading, setLoading] = useState(true);
   const [currentOfficer, setCurrentOfficer] = useState(null);
   const [formData, setFormData] = useState({
+    senderType: "Internal",
     receiverType: "Internal",
     receiverName: "",
+    externalSenderDetails: {
+      name: "",
+      department: "",
+      designation: "",
+      contact: "",
+      email: "",
+    },
     externalReceiverDetails: {
       name: "",
       department: "",
@@ -111,7 +119,16 @@ const EvidenceHandover = () => {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
-    if (name.startsWith("externalReceiverDetails.")) {
+    if (name.startsWith("externalSenderDetails.")) {
+      const field = name.split(".")[1];
+      setFormData((prev) => ({
+        ...prev,
+        externalSenderDetails: {
+          ...prev.externalSenderDetails,
+          [field]: value,
+        },
+      }));
+    } else if (name.startsWith("externalReceiverDetails.")) {
       const field = name.split(".")[1];
       setFormData((prev) => ({
         ...prev,
@@ -152,20 +169,27 @@ const EvidenceHandover = () => {
       return;
     }
 
-    const isExternal = formData.receiverType === "External";
+    const isSenderExternal = formData.senderType === "External";
+    const isReceiverExternal = formData.receiverType === "External";
+
     const selectedOfficer = officers.find(
       (officer) => officer.username === formData.receiverName
     );
-    
+
     const custodyEntry = {
       handoverFrom: {
-        userId: currentOfficer?._id,
-        username: currentOfficer?.username,
+        userId: isSenderExternal ? null : currentOfficer?._id,
+        username: isSenderExternal ? null : currentOfficer?.username,
+        externalDetails: isSenderExternal
+          ? formData.externalSenderDetails
+          : null,
       },
       handoverTo: {
-        userId: isExternal ? null : selectedOfficer?._id,
-        username: isExternal ? null : selectedOfficer?.username,
-        externalDetails: isExternal ? formData.externalReceiverDetails : null,
+        userId: isReceiverExternal ? null : selectedOfficer?._id,
+        username: isReceiverExternal ? null : selectedOfficer?.username,
+        externalDetails: isReceiverExternal
+          ? formData.externalReceiverDetails
+          : null,
       },
       purpose: formData.purpose,
       digitalSignatures: {
@@ -215,18 +239,120 @@ const EvidenceHandover = () => {
       </div>
       <form onSubmit={handleFormSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Current Officer Info */}
+          {/* Handover From Section */}
           <div className="md:col-span-2">
             <label className="block text-gray-300 text-sm font-medium mb-2">
-              Handover From (You)
+              Handover From
             </label>
-            <input
-              type="text"
-              value={currentOfficer?.username || "Loading..."}
-              className="py-3 px-4 bg-[#3a4e66] border border-[#4a607a] rounded-md focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none w-full text-white"
-              readOnly
-            />
+            <div className="flex gap-10 items-center mb-4">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="senderType"
+                  value="Internal"
+                  checked={formData.senderType === "Internal"}
+                  onChange={handleChange}
+                  className="mr-2"
+                />
+                Internal Officer
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="senderType"
+                  value="External"
+                  checked={formData.senderType === "External"}
+                  onChange={handleChange}
+                  className="mr-2"
+                />
+                External Party
+              </label>
+            </div>
           </div>
+
+          {formData.senderType === "Internal" ? (
+            <div className="md:col-span-2">
+              <label className="block text-gray-300 text-sm font-medium mb-2">
+                Handover From (You)
+              </label>
+              <input
+                type="text"
+                value={currentOfficer?.username || "Loading..."}
+                className="py-3 px-4 bg-[#3a4e66] border border-[#4a607a] rounded-md focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none w-full text-white"
+                readOnly
+              />
+            </div>
+          ) : (
+            <div className="md:col-span-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    name="externalSenderDetails.name"
+                    value={formData.externalSenderDetails.name}
+                    onChange={handleChange}
+                    className="py-3 px-4 bg-[#3a4e66] border border-[#4a607a] rounded-md focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none w-full text-white"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">
+                    Department
+                  </label>
+                  <input
+                    type="text"
+                    name="externalSenderDetails.department"
+                    value={formData.externalSenderDetails.department}
+                    onChange={handleChange}
+                    className="py-3 px-4 bg-[#3a4e66] border border-[#4a607a] rounded-md focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none w-full text-white"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">
+                    Designation
+                  </label>
+                  <input
+                    type="text"
+                    name="externalSenderDetails.designation"
+                    value={formData.externalSenderDetails.designation}
+                    onChange={handleChange}
+                    className="py-3 px-4 bg-[#3a4e66] border border-[#4a607a] rounded-md focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none w-full text-white"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">
+                    Contact
+                  </label>
+                  <input
+                    type="text"
+                    name="externalSenderDetails.contact"
+                    value={formData.externalSenderDetails.contact}
+                    onChange={handleChange}
+                    className="py-3 px-4 bg-[#3a4e66] border border-[#4a607a] rounded-md focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none w-full text-white"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    name="externalSenderDetails.email"
+                    value={formData.externalSenderDetails.email}
+                    onChange={handleChange}
+                    className="py-3 px-4 bg-[#3a4e66] border border-[#4a607a] rounded-md focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none w-full text-white"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           {loading ? (
             <div className="py-3 px-4 bg-[#3a4e66] rounded-md text-white">
@@ -428,7 +554,7 @@ const EvidenceHandover = () => {
           {/* Digital Signatures */}
           <div className="md:col-span-2">
             <label className="block text-gray-300 text-sm font-medium mb-2">
-             Giver Secure String (Initials)
+              Giver Secure String (Initials)
             </label>
             <input
               type="password"
@@ -441,7 +567,7 @@ const EvidenceHandover = () => {
           </div>
           <div className="md:col-span-2">
             <label className="block text-gray-300 text-sm font-medium mb-2">
-             Reciver Secure String (Initials)
+              Reciver Secure String (Initials)
             </label>
             <input
               type="password"

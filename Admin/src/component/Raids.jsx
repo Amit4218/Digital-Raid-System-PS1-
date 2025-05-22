@@ -35,6 +35,7 @@ function Raids() {
               raid.unplannedRequestDetails?.approvalStatus === "pending"
             )
         );
+        console.log("Filtered Raids:", filtered);
 
         setRaids(filtered);
         setLoading(false);
@@ -59,10 +60,15 @@ function Raids() {
       const rowProps = {
         raidId: raid._id,
         status: raid.status,
-        // culprit: raid.culprits?.[0]?.name || "N/A",
+        culprit: raid.culprits?.[0]?.name || "N/A",
         address: raid.location?.address || "N/A",
+<<<<<<< HEAD
         // type: raid.raidType || "N/A",
         className: ` hover:bg-[#f8fafc] cursor-pointer ${
+=======
+        type: raid.raidType || "N/A",
+        className: `hover:bg-[#f8fafc] cursor-pointer ${
+>>>>>>> 30a0d34b4453100141e15e4f2828447bb4fa3a4a
           idx % 2 === 0 ? "even:bg-[#f8fafc]" : "odd:bg-white"
         }`,
       };
@@ -79,7 +85,7 @@ function Raids() {
         case "completed":
           StatusComponent = Completed;
           break;
-        case "approved":
+        case "completed_approved":
           StatusComponent = Approved;
           break;
         default:

@@ -1,16 +1,79 @@
-import React, { useState } from "react";
-import { Eye, Download, X } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import {
+  Eye,
+  Download,
+  X,
+  Clock,
+  MapPin,
+  Calendar,
+  User,
+  FileText,
+  Video,
+} from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
+import { format } from "date-fns";
+import ApproveReport from "./status/ApproveReport";
 
 const CompletedReview = () => {
   const navigate = useNavigate();
-  const [showPreview, setShowPreview] = useState(false);
-  const warrantURL = "https://example.com/Raidwarrant.pdf";
+  const { raidId } = useParams();
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showApproveReport, setShowApproveReport] = useState(false); 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.post(
+          `${import.meta.env.VITE_BASE_URL}/admin/raid-evidence/${raidId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
 
-  const handleDownload = () => {
+        setData(response.data.data);
+      } catch (error) {
+        console.error("Error fetching raid evidence:", error);
+        setError(
+          error.response?.data?.message || "Failed to fetch raid details"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [raidId]);
+
+  const handleDownloadWarrant = () => {
+    if (!data?.raid?.warrant?.fileUrl) return;
+
     const link = document.createElement("a");
-    link.href = warrantURL;
-    link.download = "Raidwarrant.pdf";
+    link.href = data.raid.warrant.fileUrl;
+    link.download = `warrant-${raidId}.pdf`;
+    link.click();
+  };
+
+  const handleDownloadImage = (imageUrl, originalName) => {
+    const link = document.createElement("a");
+    link.href = imageUrl;
+    link.download = originalName || `evidence-image-${Date.now()}.jpg`;
+    link.click();
+  };
+
+  const handleViewVideo = (videoUrl) => {
+    // Open video in new tab or redirect to video viewer page
+    window.open(videoUrl, "_blank");
+  };
+
+  const handleDownloadVideo = (videoUrl, originalName) => {
+    const link = document.createElement("a");
+    link.href = videoUrl;
+    link.download = originalName || `evidence-video-${Date.now()}.mp4`;
     link.click();
   };
 
@@ -18,316 +81,421 @@ const CompletedReview = () => {
     navigate("/admin/raids");
   };
 
-  const [videos, setVideos] = useState([
-    { id: "Dajdfsjf92832923d3", size: "49 MB", date: "Lat/Long 13/05/2025" },
-    { id: "Dajdfsjf92832923d3", size: "52 MB", date: "Lat/Long 13/05/2025" },
-  ]);
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    return format(new Date(dateString), "PPpp");
+  };
+
+  const formatShortDate = (dateString) => {
+    if (!dateString) return "N/A";
+    return format(new Date(dateString), "PP");
+  };
+
+  const formatTime = (dateString) => {
+    if (!dateString) return "N/A";
+    return format(new Date(dateString), "p");
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+        <strong className="font-bold">Error! </strong>
+        <span className="block sm:inline">{error}</span>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return <div className="text-center py-8">No raid data found</div>;
+  }
+
+  const { raid, evidence } = data;
+  const primaryCulprit = raid.culprits?.[0] || {};
+  const evidenceImages = evidence?.[0]?.mediaFiles?.images || {};
+  const evidenceVideos = evidence?.[0]?.mediaFiles?.videos || {};
+
+  const handleApproveClick = () => {
+    setShowApproveReport(true);
+  };
+
+  if (showApproveReport) {
+    return <ApproveReport />;
+  }
 
   return (
-    <div className="bg-[#e5ebbd] p-4 rounded-md font-sans text-sm relative">
-      {/* Status with X button */}
-      <div className="flex justify-between items-center mb-2">
-        <div className="flex items-center gap-2">
-          <span className="w-3 h-3 bg-green-500 rounded-full shadow border border-white"></span>
-          <span className="text-green-700 font-medium">Completed</span>
+    <div className="bg-gray-50 p-6 rounded-lg font-sans">
+      {/* Header Section */}
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-3">
+          <div
+            className={`p-2 rounded-full ${
+              raid.status === "completed" ? "bg-green-100" : "bg-blue-100"
+            }`}
+          >
+            <div
+              className={`w-4 h-4 rounded-full ${
+                raid.status === "completed" ? "bg-green-500" : "bg-blue-500"
+              }`}
+            ></div>
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-gray-800 capitalize">
+              {raid.status} Raid Details
+            </h1>
+            <p className="text-sm text-gray-500">Raid ID: {raidId}</p>
+          </div>
         </div>
         <button
           onClick={handleClose}
-          className="bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+          className="bg-red-100 hover:bg-red-200 text-red-600 p-2 rounded-full transition-colors"
           aria-label="Close"
         >
-          <X size={18} />
+          <X size={20} />
         </button>
       </div>
 
-      {/* Main Container */}
-      <div className="flex flex-col md:flex-row gap-4">
-        {/* Left Panel */}
-        <div className="bg-[#1e2c3e] text-white p-4 rounded-lg w-full md:w-[280px] shadow">
-          <p className="mb-2">
-            <strong>Raid officer :</strong> inspector xyz
-          </p>
-          <p className="mb-2">
-            <strong>Suspect name :</strong> Amit bhagat
-          </p>
-          <p className="mb-2">
-            <strong>Address :</strong> Soreng bazar
-          </p>
-          <p className="mb-2">
-            <strong>Raid date :</strong> Soreng bazar
-          </p>
-          <p>
-            <strong>Identification :</strong> 347A-QW88
-          </p>
-        </div>
-
-        {/* Right Panel */}
-        <div className="flex-1 p-2 rounded-lg border border-[#ccc] bg-white shadow-sm">
-          {/* Descriptions (Vertical Stack) */}
+      {/* Main Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Sidebar - Raid Overview */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
           <div className="space-y-4">
-            {/* Basic Description */}
-            <div>
-              <div className="flex justify-between items-start mb-1">
-                <h2 className="text-base font-semibold text-black">
-                  Crime description
-                </h2>
-                <span className="text-red-600 text-xs font-semibold italic">
-                  UNEDITABLE
-                </span>
+            <div className="flex items-start gap-3">
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <User className="text-blue-600" size={20} />
               </div>
-              <textarea
-                readOnly
-                placeholder=""
-                className="w-full h-24 p-2 border border-gray-300 rounded-lg resize-none"
-              />
-            </div>
-
-            {/* Additional Description */}
-            <div>
-              <div className="flex justify-between items-start mb-1">
-                <h2 className="text-base font-semibold text-black">
-                  Raid description
-                </h2>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">
+                  Raid Officer
+                </h3>
+                <p className="font-semibold">{raid.inCharge}</p>
               </div>
-              <textarea
-                readOnly
-                placeholder=""
-                className="w-full h-24 p-2 border border-gray-300 rounded-lg resize-none"
-              />
+            </div>
+
+            <div className="flex items-start gap-3">
+              <div className="bg-purple-100 p-2 rounded-lg">
+                <User className="text-purple-600" size={20} />
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">
+                  Primary Suspect
+                </h3>
+                <p className="font-semibold">{primaryCulprit.name || "N/A"}</p>
+                <p className="text-sm text-gray-500">
+                  ID: {primaryCulprit.identification || "N/A"}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <div className="bg-green-100 p-2 rounded-lg">
+                <MapPin className="text-green-600" size={20} />
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Location</h3>
+                <p className="font-semibold">{raid.location.address}</p>
+                <p className="text-sm text-gray-500">
+                  Lat: {raid.location.coordinates.latitude}, Long:{" "}
+                  {raid.location.coordinates.longitude}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <div className="bg-yellow-100 p-2 rounded-lg">
+                <Calendar className="text-yellow-600" size={20} />
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Raid Date</h3>
+                <p className="font-semibold">
+                  {formatShortDate(raid.scheduledDate)}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {formatTime(raid.actualStartDate)} -{" "}
+                  {formatTime(raid.actualEndDate)}
+                </p>
+              </div>
+            </div>
+
+            {/* Warrant Section */}
+            <div className="pt-4 border-t border-gray-200">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-medium flex items-center gap-2">
+                  <FileText className="text-gray-600" size={18} />
+                  Raid Warrant
+                </h3>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleDownloadWarrant}
+                    disabled={!raid.warrant?.fileUrl}
+                    className={`text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded flex items-center gap-1 ${
+                      !raid.warrant?.fileUrl
+                        ? "opacity-50 cursor-not-allowed"
+                        : ""
+                    }`}
+                  >
+                    <Download size={16} />
+                    Download
+                  </button>
+                </div>
+              </div>
+              {raid.warrant?.hash && (
+                <div className="mt-2 text-xs text-gray-500">
+                  <span className="font-medium">Hash:</span> {raid.warrant.hash}
+                </div>
+              )}
             </div>
           </div>
-
-          {/* File & Buttons - Moved Below Descriptions */}
-          <div className="flex items-center gap-2 mt-4 flex-wrap border-t pt-3">
-            <div className="bg-gray-100 border border-gray-300 px-2 py-1 rounded text-gray-700">
-              Raidwarrant.pdf
-            </div>
-            <button
-              onClick={() => setShowPreview(!showPreview)}
-              className="flex items-center gap-1 bg-[#1e2c3e] text-white px-3 py-1 rounded hover:bg-[#33475b]"
-            >
-              <Eye size={16} />
-              Preview warrant
-            </button>
-            <button
-              onClick={handleDownload}
-              className="flex items-center gap-1 bg-[#1e2c3e] text-white px-3 py-1 rounded hover:bg-[#33475b]"
-            >
-              <Download size={16} />
-              Download warrant
-            </button>
-          </div>
-
-          {/* PDF Preview */}
-          {showPreview && (
-            <iframe
-              src={warrantURL}
-              title="Warrant Preview"
-              className="mt-4 w-full h-64 border rounded"
-            ></iframe>
-          )}
-        </div>
-      </div>
-
-      {/* Location + Time Section */}
-      <div className="mt-4 border border-[#1e2c3e] bg-white text-[#1e2c3e] rounded-xl px-4 py-3 shadow-sm">
-        <p className="font-bold mb-2">
-          LOCATION:{" "}
-          <span className="font-normal">
-            Latitude: 27.32849° N, Longitude: 88.61244° E
-          </span>
-        </p>
-
-        {/* Time Grid with Vertical Line */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm relative">
-          <div className="space-y-1">
-            <p>
-              <strong>Start Date :</strong>
-            </p>
-            <p>
-              <strong>Time :</strong>
-            </p>
-          </div>
-
-          <div className="space-y-1 border-l border-gray-300 pl-4">
-            <p>
-              <strong>End Date :</strong>
-            </p>
-            <p>
-              <strong>Time :</strong>
-            </p>
-          </div>
-        </div>
-
-        {/* Horizontal Line */}
-        <hr className="mt-4 border-t border-gray-300" />
-      </div>
-
-      {/* New Section: Written Report, License, Uploaded Files */}
-      <div className="mt-6 bg-[#1e2c3e] p-4 rounded-xl text-black flex flex-col gap-4 text-sm">
-        {/* Written Report */}
-        <div className="bg-[#f2f2c2] p-4 rounded-xl shadow text-center">
-          <h2 className="text-xl font-semibold mb-2">WRITTEN REPORT</h2>
-          <p className="text-justify text-[13px] leading-relaxed">
-            "Lorem Ipsum Dolor Sit Amet, Consectetur Adipisicing Elit, Sed Do
-            Eiusmod Tempor Incididunt Ut Labore Et Dolore Magna Aliqua. Ut Enim
-            Ad Minim Veniam, Quis Nostrud Exercitation Ullamco Laboris Nisi Ut
-            Aliquip Ex Ea Commodo Consequat. Duis Aute Irure Dolor In
-            Reprehenderit In Voluptate Velit Esse Cillum Dolore Eu Fugiat Nulla
-            Pariatur. Excepteur Sint Occaecat Cupidatat Nonproident, Sunt In
-            Culpa Qui Officia Deserunt Mollit Anim Id Est Laborum."
-          </p>
         </div>
 
-        {/* License and Uploaded Files Grid */}
-        <div className="flex flex-col md:flex-row gap-4">
-          {/* License Box */}
-          <div className="bg-[#f2f2c2] p-4 rounded-xl flex-1 shadow">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="text-lg font-semibold">License</h3>
-              <select className="text-sm bg-white border border-gray-300 rounded px-2 py-1">
-                <option>Select Category</option>
-              </select>
-            </div>
-            <div className="text-sm space-y-1 mb-3">
-              <p>
-                <strong>ID:</strong>
-              </p>
-              <p>
-                <strong>ISSUED DATE:</strong>
-              </p>
-              <p>
-                <strong>EXPIRY DATE:</strong>
-              </p>
-            </div>
-            <div className="border border-black rounded-md p-2 text-center bg-white">
-              <p className="font-bold text-xs">PREVIOUS CRIME RECORD</p>
-              <p className="text-sm mt-1">No Previous Crime Record Found</p>
-            </div>
-          </div>
-
-          {/* Uploaded Files */}
-          <div className="bg-[#f2f2c2] p-4 rounded-xl flex-1 shadow">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="text-lg font-semibold">Uploaded Files</h3>
-              <button className="text-sm bg-[#1e2c3e] text-white px-3 py-1 rounded shadow">
-                Upload
-              </button>
-            </div>
-            <input
-              type="text"
-              readOnly
-              value="UploadedSeizedItems.Docs"
-              className="w-full border border-gray-400 rounded px-2 py-1 text-sm mb-3"
-            />
-            <div className="border border-gray-400 rounded-lg p-4 bg-white flex flex-col items-center justify-center text-sm text-gray-700">
-              <p className="mb-2">Drag And Drop To Upload File</p>
-              <div className="border border-gray-300 p-4 rounded-lg">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  height="40"
-                  fill="gray"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14l4-4h12l4 4z" />
-                </svg>
+        {/* Main Content Area */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Crime and Raid Descriptions */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              Crime Details
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-500 mb-1">
+                  Crime Description
+                </label>
+                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                  <p className="text-gray-800">
+                    {primaryCulprit.description || "No description provided"}
+                  </p>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500 mb-1">
+                  Raid Description
+                </label>
+                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                  <p className="text-gray-800">
+                    {raid.description || "No description provided"}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Seized Item Details */}
-      <div className="bg-[#e5ebbd] text-[#1e2c3e] p-6 rounded-lg shadow-lg mt-6 border">
-        <h2 className="text-center text-xl font-bold mb-4">
-          Seized Item Details
-        </h2>
-
-        {/* Form Top Section */}
-        <div className="flex justify-between items-center gap-4 mb-4">
-          <div className="flex flex-col">
-            <label className="text-sm font-semibold mb-1">Category:</label>
-            <select className="border border-gray-400 px-3 py-1 rounded bg-white text-sm">
-              <option>Select</option>
-            </select>
-          </div>
-          <button className="bg-[#1e2c3e] text-white px-4 py-2 rounded shadow">
-            Upload Image
-          </button>
-        </div>
-
-        <div className="mb-4">
-          <label className="text-sm font-semibold mb-1 block">
-            Description
-          </label>
-          <textarea
-            className="w-full border border-gray-400 rounded px-3 py-2"
-            rows="3"
-          ></textarea>
-        </div>
-
-        {/* Images and Item Details */}
-        <div className="flex gap-4 justify-center mb-6">
-          {[1, 2].map((_, index) => (
-            <div
-              key={index}
-              className="text-white bg-[#1e2c3e] p-2 rounded-lg shadow-md"
-            >
-              <img
-                src="https://via.placeholder.com/150"
-                alt="seized item"
-                className="w-40 h-32 object-cover rounded mb-2"
-              />
-              <h3 className="text-sm font-semibold">ITEM NAME</h3>
-              <p className="text-xs">Some Crazy Things About The Seized Item</p>
+          {/* Written Report */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <FileText size={20} />
+              Written Report
+            </h2>
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <p className="text-gray-800 whitespace-pre-line">
+                {raid.writtenReport || "No written report submitted yet."}
+              </p>
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Video Upload Section */}
-      <div className="flex flex-col items-start mt-7">
-        <button className="bg-[#1e2c3e] text-white px-4 py-1 rounded shadow mb-2">
-          Upload Video
-        </button>
-        <div className="bg-[#1e2c3e] text-white rounded-lg shadow w-full">
-          <div className="grid grid-cols-3 p-2 font-semibold text-sm border-b border-white">
-            <span>Video ID</span>
-            <span>Size</span>
-            <span>Location/Date Time</span>
           </div>
-          {videos.map((video, i) => (
-            <div
-              key={i}
-              className="grid grid-cols-3 p-2 text-sm border-t border-gray-400"
-            >
-              <span>{video.id}</span>
-              <span>{video.size}</span>
-              <span>{video.date}</span>
-            </div>
-          ))}
+
+          {/* License Information */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <h2 className="text-lg font-semibold mb-4">License Information</h2>
+            {raid.licence ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">
+                    Holder Name
+                  </label>
+                  <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    {raid.licence.holderName}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">
+                    License ID
+                  </label>
+                  <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    {raid.licence.licenceId}
+                  </div>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-500 mb-1">
+                    Previous Crime Record
+                  </label>
+                  <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 text-center">
+                    No Previous Crime Record Found
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-gray-500">No license information available</p>
+            )}
+          </div>
+
+          {/* Evidence Section */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <h2 className="text-lg font-semibold mb-4">Seized Evidence</h2>
+
+            {evidence?.[0] ? (
+              <>
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-500 mb-2">
+                    Description
+                  </label>
+                  <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    {evidence[0].description}
+                  </div>
+                </div>
+
+                {/* Evidence Images */}
+                <div className="mb-6">
+                  <h3 className="text-md font-medium mb-3">
+                    Photographic Evidence
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {evidenceImages.fileUrl?.length > 0 ? (
+                      evidenceImages.fileUrl.map((imageUrl, index) => (
+                        <div
+                          key={index}
+                          className="border rounded-lg overflow-hidden"
+                        >
+                          <img
+                            src={imageUrl}
+                            alt={`Evidence ${index + 1}`}
+                            className="w-full h-48 object-cover"
+                            onError={(e) => {
+                              e.target.src = "/image-placeholder.svg";
+                              e.target.className =
+                                "w-full h-48 object-contain p-4 bg-gray-100";
+                            }}
+                          />
+                          <div className="p-2 bg-gray-50">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm truncate">
+                                {evidenceImages.originalName?.[index] ||
+                                  `image_${index + 1}`}
+                              </span>
+                              <button
+                                onClick={() =>
+                                  handleDownloadImage(
+                                    imageUrl,
+                                    evidenceImages.originalName?.[index]
+                                  )
+                                }
+                                className="text-blue-600 hover:text-blue-800"
+                              >
+                                <Download size={16} />
+                              </button>
+                            </div>
+                            {evidenceImages.hash && (
+                              <div className="text-xs text-gray-500 mt-1 truncate">
+                                Hash: {evidenceImages.hash}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-gray-500 col-span-2">
+                        No images available
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Evidence Videos Table */}
+                <div>
+                  <h3 className="text-md font-medium mb-3">Video Evidence</h3>
+                  {evidenceVideos.fileUrl?.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Video
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Hash
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Actions
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {evidenceVideos.fileUrl.map((videoUrl, index) => (
+                            <tr key={index}>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center">
+                                  <Video className="flex-shrink-0 h-5 w-5 text-gray-400" />
+                                  <div className="ml-4">
+                                    <div className="text-sm font-medium text-gray-900">
+                                      {evidenceVideos.originalName?.[index] ||
+                                        `video_${index + 1}`}
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-gray-500 font-mono truncate max-w-xs">
+                                  {evidenceVideos.hash || "N/A"}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <div className="flex space-x-2">
+                                  <button
+                                    onClick={() => handleViewVideo(videoUrl)}
+                                    className="text-blue-600 hover:text-blue-900"
+                                  >
+                                    View
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      handleDownloadVideo(
+                                        videoUrl,
+                                        evidenceVideos.originalName?.[index]
+                                      )
+                                    }
+                                    className="text-green-600 hover:text-green-900"
+                                  >
+                                    Download
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <p className="text-gray-500">No videos available</p>
+                  )}
+                </div>
+              </>
+            ) : (
+              <p className="text-gray-500">
+                No evidence collected for this raid
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Signature */}
-      <div className="mb-4">
-        <label className="text-sm italic mb-1 block">Signature</label>
-        <input
-          type="text"
-          className="border border-gray-400 rounded px-3 py-1 w-40"
-        />
-      </div>
-
-      {/* Approve and Close buttons */}
-      <div className="flex justify-end gap-4">
-        <button className="bg-green-500 text-white font-semibold px-6 py-2 rounded-full">
-          Approve
-        </button>
+      {/* Action Buttons */}
+      <div className="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-200">
         <button
           onClick={handleClose}
-          className="bg-red-500 text-white font-semibold px-6 py-2 rounded-full hover:bg-gray-300"
+          className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium px-6 py-2 rounded-lg transition-colors"
         >
           Close
+        </button>
+        <button
+          onClick={handleApproveClick} // Changed from direct navigate
+          className="bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-2 rounded-lg transition-colors"
+        >
+          Approve Report
         </button>
       </div>
     </div>
