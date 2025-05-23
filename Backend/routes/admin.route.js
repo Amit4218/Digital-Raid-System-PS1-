@@ -9,6 +9,7 @@ import HandoverRecord from "../models/handoverRecords.model.js";
 import upload from "../config/multer.config.js";
 import sendEmail from "../utils/nodemailer.util.js";
 import Evidence from "../models/evidence.model.js";
+import BlackListedToken from "../models/blackList.model.js";
 import crypto from "crypto";
 
 const router = express.Router();
@@ -495,6 +496,45 @@ router.put("/raid-approve/:id", async (req, res) => {
       message: "Internal server error",
       error: error.message,
     });
+  }
+});
+
+// Logout Route
+router.post("/logout", async (req, res) => {
+  const { token } = req.body;
+
+  if (!token) {
+    return res.status(400).json({ message: "Token is required" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const session = await Sessions.findOne({ _id: decoded.sessionId });
+
+    if (session) {
+      session.loggedOutAt = new Date();
+      await session.save();
+    } else {
+      return res.status(400).json({ message: "Session not found" });
+    }
+
+    await BlackListedToken.create({
+      token,
+    });
+
+    res.status(200).json({ message: "Logged Out successfully" });
+  } catch (error) {
+    console.error("Logout Error:", error);
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({ message: "Token expired" });
+    }
+    res.status(500).json({ message: "Logout error", error: error.message });
   }
 });
 

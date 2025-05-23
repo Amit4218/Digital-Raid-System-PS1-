@@ -9,6 +9,7 @@ import Licence from "../models/licence.model.js";
 import HandoverRecord from "../models/handoverRecords.model.js";
 import sendEmail from "../utils/nodemailer.util.js";
 import Evidence from "../models/evidence.model.js";
+import BlackListedToken from "../models/blackList.model.js";
 import crypto from "crypto";
 import path from "path";
 import fs from "fs/promises";
@@ -417,6 +418,10 @@ router.post("/logout", async (req, res) => {
     } else {
       return res.status(400).json({ message: "Session not found" });
     }
+
+    await BlackListedToken.create({
+      token,
+    });
 
     res.status(200).json({ message: "Logged Out successfully" });
   } catch (error) {

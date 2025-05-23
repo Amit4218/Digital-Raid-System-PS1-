@@ -9,7 +9,7 @@ import TokenValidator from "../utils/tokenValidator";
 function RaidPage() {
   TokenValidator();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [raids, setRaids] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -17,7 +17,7 @@ function RaidPage() {
   useEffect(() => {
     setLoading(true);
     const getRaids = async () => {
-      try {
+      try { 
         const res = await axios.get(
           `${import.meta.env.VITE_BASE_URL}/user/get-all-raids`,
           {
