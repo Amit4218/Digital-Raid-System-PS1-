@@ -547,14 +547,14 @@ router.post("/confirm-raid", async (req, res) => {
     const raid = await Raid.findByIdAndUpdate(raidId, {
       status: "completed",
       evidenceId,
-      writtenReport,
+      writtenReport: "Not Available" || writtenReport,
       actualEndDate: Date.now(),
       licence: {
         holderName: licence.licenceHolder || null,
         licenceId: licence.licenceId || null,
       },
       $set: {
-        "culprits.$[].identification": criminal.criminalId || null,
+        "culprits.$[].identification": null || criminal.criminalId,
       },
     });
 

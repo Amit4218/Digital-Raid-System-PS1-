@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
-import Navbar from "../components/Navbar";
-import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import SearchCriminal from "../components/SearchCriminal";
 import UploadImage from "../components/UploadImage";
@@ -85,9 +84,17 @@ function Planned() {
     if (confirm === "CONFIRM") {
       setLoading(true);
       if (!info.crimainalId || !info.licenceId || !info.evidenceId) {
-        window.location.reload();
-        SubmitRaid();
+        navigate(`/raid-start-form/${raidId}`);
+        save();
       }
+      save();
+    }
+  };
+
+  // save info api
+
+  const save = async () => {
+    try {
       const res = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/user/confirm-raid`,
         info
@@ -100,14 +107,18 @@ function Planned() {
         }, 500);
         navigate("/raidPage");
         localStorage.removeItem("criminalId");
-        localStorage.removeItem("criminalId");
         localStorage.removeItem("raidId");
       } else {
+        save();
         setTimeout(() => {
           setLoading(false);
         }, 500);
         toast.error("Something went wrong, Please Re-submmit again");
       }
+    } catch (error) {
+      toast.error("Something went wrong");
+    } finally {
+      setLoading(false);
     }
   };
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -12,12 +12,13 @@ function RaidPage() {
   const [loading, setLoading] = useState(true);
   const [raids, setRaids] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const userId = localStorage.getItem("userId");
 
   // Fetch all raids
   useEffect(() => {
     setLoading(true);
     const getRaids = async () => {
-      try { 
+      try {
         const res = await axios.get(
           `${import.meta.env.VITE_BASE_URL}/user/get-all-raids`,
           {
@@ -26,10 +27,19 @@ function RaidPage() {
             },
           }
         );
-        setRaids(res.data.raids);
-        setTimeout(() => {
-          setLoading(false);
-        }, 400);
+
+        // Check if response has raids array
+        if (res.data?.raids && Array.isArray(res.data.raids)) {
+          // Filter raids where inchargeId matches userId
+          const userRaids = res.data.raids.filter(
+            (raid) => raid.inchargeId === userId
+          );
+          setRaids(userRaids);
+        } else {
+          setRaids([]);
+        }
+
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching raids:", error);
         toast.error("Failed to fetch raids");
@@ -38,19 +48,21 @@ function RaidPage() {
     };
 
     getRaids();
-  }, []);
+  }, [userId]);
 
-  function canStartRaid(raid) {
+  const canStartRaid = useCallback((raid) => {
+    if (!raid) return false;
+
     if (raid.status === "completed" || raid.status === "active") {
       return false;
     }
 
     if (raid.isUnplannedRequest) {
-      return raid.unplannedRequestDetails.approvalStatus === "approved";
+      return raid.unplannedRequestDetails?.approvalStatus === "approved";
     }
 
     return raid.status === "pending" && raid.raidApproved?.isApproved === true;
-  }
+  }, []);
 
   const handleStartRaid = (raidId) => {
     navigate("/permission", { state: { raidId } });
@@ -62,9 +74,9 @@ function RaidPage() {
     const isPending = raid.status === "pending";
     const isActive = raid.status === "active";
     const matchesSearch =
-      raid._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      raid.inCharge.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      raid.location?.address.toLowerCase().includes(searchTerm.toLowerCase());
+      raid._id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      raid.inCharge?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      raid.location?.address?.toLowerCase().includes(searchTerm.toLowerCase());
 
     return ((isApproved && isPending) || isActive) && matchesSearch;
   });
@@ -141,7 +153,7 @@ function RaidPage() {
 
             {/* Raids List */}
             <div className="overflow-y-auto max-h-[calc(100vh-250px)] custom-scroll">
-              {!filteredRaids || filteredRaids.length === 0 ? (
+              {filteredRaids.length === 0 ? (
                 <div className="flex flex-col items-center justify-center text-gray-400 py-12 text-lg">
                   <svg
                     className="h-16 w-16 mb-4 text-gray-600"
@@ -284,7 +296,7 @@ function RaidPage() {
                     {/* Desktop View */}
                     <span className="hidden md:flex items-center col-span-3 font-mono text-xs text-gray-300 break-all">
                       <svg
-                        className="h-4 w-4   text-gray-500 mr-2 flex-shrink-0"
+                        className="h-4 w-4 text-gray-500 mr-2 flex-shrink-0"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
