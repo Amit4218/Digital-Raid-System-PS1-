@@ -1,12 +1,17 @@
 import React, { useState } from "react";
+import PublicGrievanceSignUp from "../PublicGrievanceSignUp";
+
+
+
 
 const PublicGrievance = () => {
   const [clicked, setClicked] = useState(false);
 
   const handleClick = () => {
     setClicked(true);
-    setTimeout(() => setClicked(false), 300); // Reset animation after a short delay
-    // You can open a modal or trigger a function here
+    setTimeout(() => setClicked(false), 300); 
+
+ 
     console.log("Public grievance button clicked");
   };
 
