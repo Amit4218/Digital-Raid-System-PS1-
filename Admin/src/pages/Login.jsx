@@ -50,77 +50,70 @@ function Login() {
 
   return (
     <div
-      className="h-screen w-full flex bg-cover bg-center relative"
+      className="h-screen w-full flex flex-col items-center justify-center bg-cover bg-center"
       style={{ backgroundImage: `url(${kan})` }}
     >
-    
-      <div className="w-1/2 flex flex-col p-8">
-      
-        <div className="flex-grow">
-          <p className="text-white font-bold text-4xl mb-4">SIKKIM POLICE</p>
-          <p className="text-white text-2xl font-bold glow-effect">
-            TO PROTECT AND SERVE
-          </p>
+      {/* Header Text */}
+      <div className="flex items-center space-x-6 mb-6">
+        <p className="text-white font-bold text-4xl">SIKKIM POLICE</p>
+        <p className="text-white text-2xl font-semibold glow-effect">
+          TO PROTECT AND SERVE
+        </p>
+      </div>
+
+      {/* Container */}
+      <div className="flex items-center justify-center">
+        {/* Logo Box */}
+        <div className="flex flex-col justify-center h-[450px] w-96 border-4 border-amber-500 backdrop-blur-md p-6 rounded-2xl shadow-2xl">
+          <div className="flex justify-center items-center h-full">
+            <img
+              src={Police}
+              alt="Sikkim police logo"
+              className="h-74 object-contain"
+            />
+          </div>
+        </div>
+
+        {/* Login Form */}
+        <div className="h-[450px] w-96 backdrop-blur-md border-2 border-white border-l-0 rounded-r-2xl shadow-2xl text-white p-10 flex items-center">
+          <form id="login-form" onSubmit={loginHandler} className="w-full">
+            <div className="flex flex-col space-y-6">
+              <div className="flex items-center gap-4 mb-16">
+                <FaUser className="text-white text-xl" />
+                <input
+                  type="text"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-zinc-500/80 text-white px-4 py-2   rounded focus:outline-none"
+                  placeholder="Username"
+                  id="userName"
+                />
+              </div>
+
+              <div className="flex items-center gap-4 mb-24">
+                <FaLock className="text-white text-xl" />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-zinc-500/80 text-white px-4 py-2 rounded focus:outline-none"
+                  placeholder="Password"
+                  id="password"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-amber-500 hover:bg-lime-600 transition-colors py-2 rounded-md font-bold cursor-pointer"
+              >
+                Submit
+              </button>
+            </div>
+          </form>
         </div>
       </div>
 
-     
-      <div className="w-1/2 flex flex-col items-center justify-center">
-        <form
-          id="login-form"
-          onSubmit={loginHandler}
-          className="backdrop-blur-md border-2 rounded-2xl shadow-2xl text-white p-10 w-96"
-        >
-          <div className="flex flex-col gap-6">
-            <div className="flex items-center gap-4">
-              <FaUser className="text-white text-xl" />
-              <input
-                type="text"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-zinc-500/80 text-white px-4 py-2 rounded focus:outline-none"
-                placeholder="Username"
-                id="userName"
-              />
-            </div>
-
-            <div className="flex items-center gap-4">
-              <FaLock className="text-white text-xl" />
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-zinc-500/80 text-white px-4 py-2 rounded focus:outline-none"
-                placeholder="Password"
-                id="password"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full mt-4 bg-lime-400 hover:bg-lime-600 transition-colors py-2 rounded-md font-bold cursor-pointer"
-            >
-              Submit
-            </button>
-          </div>
-        </form>
-      </div>
-
-    
-      <div className="absolute bottom-8 left-8">
-        <img src={Skm} alt="SKM Logo" className="h-32 object-contain" />
-      </div>
-
-    
-      <div className="absolute bottom-8 right-8">
-        <img
-          src={Police}
-          alt="Sikkim police logo"
-          className="h-32 object-contain"
-        />
-      </div>
-
-  
+      {/* Glow Effect */}
       <style jsx>{`
         .glow-effect {
           text-shadow: 0 0 30px rgba(132, 204, 22, 0.8);
@@ -131,7 +124,7 @@ function Login() {
             text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
           }
           to {
-            text-shadow: 0 0 40px rgba(132, 204, 22, 0.8),
+            text-shadow: 0 0 10px rgba(132, 204, 22, 0.8),
               0 0 15px rgba(132, 204, 22, 0.6);
           }
         }
