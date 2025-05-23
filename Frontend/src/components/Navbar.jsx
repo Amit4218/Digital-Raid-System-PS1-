@@ -70,6 +70,15 @@ const Navbar = () => {
           >
             Finished Raids
           </button>
+         
+          <button
+            onClick={(e) => {
+              navigate("/bailbond");
+            }}
+            className="px-6 py-2 text-white font-semibold rounded-full border border-white cursor-pointer shadow-md bg-[#213448] hover:bg-[#435465]"
+          >
+            Issue Bailbond
+          </button>
         </div>
 
         {/* Right - Logout */}
@@ -152,6 +161,24 @@ const Navbar = () => {
               className="w-full px-4 py-2 text-white font-semibold rounded-full border border-white cursor-pointer shadow-md bg-[#213448] hover:bg-[#435465]"
             >
               Create Unplanned Raid
+            </button>
+            <button
+              onClick={(e) => {
+                navigate("/unplanned-raid");
+                setIsMenuOpen(false);
+              }}
+              className="w-full px-4 py-2 text-white font-semibold rounded-full border border-white cursor-pointer shadow-md bg-[#213448] hover:bg-[#435465]"
+            >
+              Finished Raids
+            </button>
+            <button
+              onClick={(e) => {
+                navigate("/unplanned-raid");
+                setIsMenuOpen(false);
+              }}
+              className="w-full px-4 py-2 text-white font-semibold rounded-full border border-white cursor-pointer shadow-md bg-[#213448] hover:bg-[#435465]"
+            >
+              Issue Bailbond
             </button>
             <button
               onClick={logoutHandler}

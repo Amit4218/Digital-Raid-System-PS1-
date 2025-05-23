@@ -77,9 +77,6 @@ const EvidenceHandover = () => {
           }
         );
 
-        console.log("API Response:", res.data);
-
-        // Access the evidence array from the response
         const exhibitsData = res.data.evidence || [];
 
         if (exhibitsData.length === 0) {
@@ -145,6 +142,26 @@ const EvidenceHandover = () => {
     }
   };
 
+  const updateCurrentHolder = async (evidenceId, currentHolder) => {
+    try {
+      const response = await axios.put(
+        `${
+          import.meta.env.VITE_BASE_URL
+        }/user/update-current-holder/${evidenceId}`,
+        { currentHolder },
+        {
+          headers: {
+            "x-access-key": import.meta.env.VITE_SECRET_ACCESS_KEY,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error updating current holder:", error);
+      throw error;
+    }
+  };
+
   const handleFormSubmit = async (e) => {
     e.preventDefault();
 
@@ -176,6 +193,14 @@ const EvidenceHandover = () => {
       (officer) => officer.username === formData.receiverName
     );
 
+    // Determine the current holder information (just the name)
+    let currentHolder;
+    if (isReceiverExternal) {
+      currentHolder = formData.externalReceiverDetails.name;
+    } else {
+      currentHolder = formData.receiverName;
+    }
+
     const custodyEntry = {
       handoverFrom: {
         userId: isSenderExternal ? null : currentOfficer?._id,
@@ -205,11 +230,12 @@ const EvidenceHandover = () => {
       raidId,
       exhibitType: formData.exhibitType,
       exhibitId: formData.exhibitId,
-      custodyChain: [custodyEntry], // Send as array with the entry
+      custodyChain: [custodyEntry],
       itemDescription: formData.itemDescription,
     };
 
     try {
+      // First, submit the handover record
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/user/handover/${raidId}`,
         payload,
@@ -220,14 +246,16 @@ const EvidenceHandover = () => {
         }
       );
 
+      // Then update the current holder with just the name
+      const selectedExhibit = exhibits.find(
+        (exhibit) => exhibit.exhibitId === formData.exhibitId
+      );
+
+      if (selectedExhibit) {
+        await updateCurrentHolder(selectedExhibit._id, currentHolder);
+      }
+
       toast.success("Handover recorded successfully!");
-      
-      
-
-      
-
-
-
       navigate("/finished-raids");
     } catch (error) {
       console.error("Error submitting handover:", error);
@@ -393,7 +421,6 @@ const EvidenceHandover = () => {
                   <div className="bg-[#3a4e66] p-4 rounded-md">
                     <p className="text-white">Type: {formData.exhibitType}</p>
                     <p className="text-white">ID: {formData.exhibitId}</p>
-                    <p className="text-white"></p>
                   </div>
                 </div>
               )}

@@ -35,7 +35,7 @@ const Handover = () => {
           Evidence Handover
         </label>
 
-        <label className="flex items-center gap-2">
+        {/* <label className="flex items-center gap-2">
           <input
             type="radio"
             name="handover"
@@ -45,10 +45,10 @@ const Handover = () => {
             onChange={() => setChooseHandover(false)}
           />
           Custody Handover
-        </label>
+        </label> */}
       </div>
 
-      {chooseHandover ? <EvidenceHandover /> : <CustodyHandover />}
+      {chooseHandover ? <EvidenceHandover /> : null}
     </div>
   );
 };

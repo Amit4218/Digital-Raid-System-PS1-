@@ -9,6 +9,7 @@ import Planned from "./pages/Planned";
 import Permission from "./pages/Permission";
 import Handover from "./pages/Handover";
 import FinishedRaids from "./pages/FinishedRaids";
+import BailBondGenerator from "./components/BailBondGenerator";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path="/raid-start-form/:id" element={<Planned />} />
         <Route path="/handover/:raidId" element={<Handover />} />
         <Route path="/Finished-raids" element={<FinishedRaids />} />
+        <Route path="/bailbond" element={<BailBondGenerator />} />
       </Routes>
       <ToastContainer theme="black" transition={Slide} autoClose={1000} />
     </>
@@ -29,3 +31,4 @@ function App() {
 }
 
 export default App;
+
