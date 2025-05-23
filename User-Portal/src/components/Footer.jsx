@@ -27,67 +27,65 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="bg-lime-800 text-white mt-10">
-      {/* Top Section: Buttons spread evenly */}
-      <div className="flex flex-wrap justify-evenly items-center px-10 py-6">
-        {policyLinks.map(({ text, href }, idx) => (
-          <a
-            key={idx}
-            href={href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-4 py-2 bg-lime-700 hover:bg-lime-600 rounded-full text-sm transition"
-          >
-            {text}
-          </a>
-        ))}
-      </div>
-
-      {/* Middle Section: Left images, right text */}
-      <div className="flex flex-col md:flex-row justify-between items-start px-10 py-8 gap-8">
-        {/* Left - Images evenly spread */}
-        <div className="flex justify-evenly gap-8 items-center flex-1">
-          <img src={img1} alt="QR Code" className="h-24 w-auto" />
-
-          <a
-            href="https://excise.sikkim.gov.in/writereaddata/eAbgari_Sikkim_Completion_Certificate_1.pdf"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <img
-              src={img2}
-              alt="Completion Certificate"
-              className="h-24 w-auto cursor-pointer"
-            />
-          </a>
+    <footer className="bg-[#33363B] text-gray-300 text-sm">
+      {/* Top section with 3 equal columns */}
+      <div className="max-w-7xl mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-3 gap-10 border-b border-gray-600">
+        {/* Policy Links */}
+        <div>
+          <h3 className="text-base font-semibold mb-4">Policies</h3>
+          <ul className="space-y-2">
+            {policyLinks.map(({ text, href }, idx) => (
+              <li key={idx}>
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition"
+                >
+                  {text}
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
 
-        {/* Right - Info Text */}
-        <div className="text-sm space-y-2 max-w-md">
-          <p>Project Commissioned - e-Abkari Version 2.0 : 16/07/2021</p>
-          <p>Soft Launch of Website : 16/07/2021</p>
-          <p>Last Updated : 16/07/2021</p>
+        {/* QR and Certificate */}
+        <div className="flex flex-col items-center space-y-4">
+          <img src={img1} alt="QR Code" className="h-24" />
+          <img src={img2} alt="Certificate" className="h-12" />
+        </div>
+
+        {/* Project Info */}
+        <div>
+          <h3 className="text-base font-semibold mb-4">Project Details</h3>
           <p>
-            Site Designed, hosted by{" "}
+            <strong>e-Abkari Version 2.0:</strong> 16/07/2021
+          </p>
+          <p>
+            <strong>Soft Launch:</strong> 16/07/2021
+          </p>
+          <p>
+            <strong>Last Updated:</strong> 16/07/2021
+          </p>
+          <p>
+            Hosted by{" "}
             <a
-              href="https://www.nic.gov.in/"
+              href="https://www.nic.in"
               target="_blank"
               rel="noopener noreferrer"
-              className="underline hover:text-blue-400"
+              className="text-yellow-400 hover:text-yellow-300 underline"
             >
               National Informatics Centre
             </a>
           </p>
-          <p>
-            Best viewed in{" "}
-            <strong>Internet Explorer 10.0 / 11.0 or later</strong>.
-          </p>
+          <p>Best viewed in IE 10+ / Modern Browsers</p>
         </div>
       </div>
 
-      {/* Bottom Section - Centered */}
-      <div className="bg-gray-400 text-center text-black text-sm py-3">
-        © 2021-2022 | <strong>All rights reserved.</strong>
+      {/* Bottom bar */}
+      <div className="bg-[#2C2E33] text-center py-3 text-gray-400 text-xs">
+        <p>© 2021–2022</p>
+        <p>All rights reserved .</p>
       </div>
     </footer>
   );
