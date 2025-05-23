@@ -60,7 +60,7 @@ const FinishedRaids = () => {
   return (
     <div>
       <Navbar />
-      <div className="bg-[#1F3143] px-6 absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 border max-h-[80vh] w-[80vw] border-amber-300 rounded-xl mt-10 min-h-[300px] text-white shadow-lg overflow-auto no-scrollbar">
+      <div className="bg-[#1F3143] px-6  border max-h-[80vh] w-[80vw] border-amber-300 rounded-xl mx-auto my-20 min-h-[300px] text-white shadow-lg overflow-auto no-scrollbar">
         {/* Table Header */}
         <div className="hidden md:grid grid-cols-12 sticky top-0 border-b border-amber-300 font-semibold text-amber-200 text-sm select-none py-3 px-2">
           <div className="col-span-3 truncate">Raid ID</div>
