@@ -1,18 +1,16 @@
 import React, { useState } from "react";
-import PublicGrievanceSignUp from "../PublicGrievanceSignUp";
-
-
-
+import { useNavigate } from "react-router-dom";
 
 const PublicGrievance = () => {
   const [clicked, setClicked] = useState(false);
+  const navigate = useNavigate();   
 
   const handleClick = () => {
     setClicked(true);
-    setTimeout(() => setClicked(false), 300); 
-
- 
-    console.log("Public grievance button clicked");
+    setTimeout(() => {
+      setClicked(false);
+      navigate("/public-sign-up"); 
+    }, 300);
   };
 
   return (

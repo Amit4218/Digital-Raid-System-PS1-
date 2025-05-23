@@ -13,6 +13,7 @@ function Raids() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     const fetchRaids = async () => {
       try {
         const res = await axios.get(
@@ -34,11 +35,14 @@ function Raids() {
               raid.unplannedRequestDetails?.approvalStatus === "pending"
             )
         );
+        console.log("Filtered Raids:", filtered);
 
         setRaids(filtered);
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching raids:", error);
         toast.error("Failed to fetch raids");
+        setLoading(false);
       } finally {
         setLoading(false);
       }
@@ -48,7 +52,7 @@ function Raids() {
   }, []);
 
   const handleCreateRaid = () => {
-    navigate("/admin/planned-raid");
+    navigate("/admin/planned-raid"); // for creating new raid, no ID needed
   };
 
   const renderRows = () =>
@@ -58,12 +62,14 @@ function Raids() {
         status: raid.status,
         culprit: raid.culprits?.[0]?.name || "N/A",
         address: raid.location?.address || "N/A",
-        className: `hover:bg-[#f8fafc] cursor-pointer ${
+        // type: raid.raidType || "N/A",
+        className: ` hover:bg-[#f8fafc] cursor-pointer ${
           idx % 2 === 0 ? "even:bg-[#f8fafc]" : "odd:bg-white"
         }`,
       };
 
       let StatusComponent;
+
       switch (raid.status) {
         case "pending":
           StatusComponent = Pending;
@@ -89,21 +95,19 @@ function Raids() {
     });
 
   return (
-    <div className="flex flex-col items-center bg-[#f8fafc] pt-20 pb-8 px-4 min-h-screen">
-      <div className="w-full max-w-7xl bg-white rounded-xl shadow-lg overflow-hidden border border-[#e2e8f0]">
-        {/* Table Header */}
-        <div className="hidden md:grid grid-cols-6 gap-4 bg-[#213448] p-4 font-bold text-white text-sm">
+    <div className="flex flex-col items-center max-h-[90vh] bg-[#f8fafc] pt-20 pb-8 ">
+      <div className="w-4/5 mx-auto bg-white rounded-xl shadow-lg overflow-y-scroll no-scrollbar border border-[#e2e8f0]">
+        <div className="grid grid-cols-6 gap-4 bg-[#213448] p-4 font-semibold text-white">
           <div>Raid ID</div>
           <div>Culprit Name</div>
           <div>Address</div>
-          <div className="hidden lg:block">Raid Type</div>
+          <div>Raid Type</div>
           <div>Status</div>
         </div>
 
-        {/* Data Rows */}
-        <div className="divide-y divide-[#e2e8f0] overflow-y-auto max-h-[70vh]">
+        <div className="divide-y divide-[#e2e8f0]">
           {loading ? (
-            <div className="p-4 text-center text-gray-600">Loading...</div>
+            <div className="p-4 text-center text-gray-600 ">Loading...</div>
           ) : raids.length === 0 ? (
             <div className="p-4 text-center text-gray-600">No raids found.</div>
           ) : (
@@ -112,10 +116,9 @@ function Raids() {
         </div>
       </div>
 
-      {/* Create Button */}
       <button
         onClick={handleCreateRaid}
-        className="fixed bottom-6 right-6 bg-[#213448] text-white px-5 py-3 rounded-full shadow-lg hover:bg-[#1a2a3a] transition-all text-sm md:text-base flex items-center gap-2"
+        className="fixed bottom-6 right-6 bg-[#213448] text-white px-6 py-3 rounded-full shadow-lg hover:bg-[#1a2a3a] transition-colors flex items-center gap-2"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -129,7 +132,7 @@ function Raids() {
             clipRule="evenodd"
           />
         </svg>
-        <span className="hidden sm:inline">Create New Raid</span>
+        Create New Raid
       </button>
     </div>
   );
