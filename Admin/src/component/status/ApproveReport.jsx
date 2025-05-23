@@ -107,6 +107,39 @@ const ApproveReport = () => {
         }
       );
 
+      try {
+        await axios.post(
+          `${import.meta.env.VITE_BASE_URL}/admin/audit-log`,
+          {
+            action: "raid_approved",
+            performedBy: approvedBy,
+            targetId: raidId,
+            targetType: "raid",
+            changes: [
+              {
+                field: "status",
+                oldValue: "completed",
+                newValue: "completed_approved",
+              },
+              {
+                field: "approvedBy",
+                oldValue: null,
+                newValue: approvedBy,
+              },
+            ],
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+      } catch (auditError) {
+        console.error("Failed to create audit log:", auditError);
+        // Don't fail the whole operation if audit logging fails
+      }
+
+
       // Update local state with approved raid
       setData((prev) => ({
         ...prev,
@@ -116,7 +149,7 @@ const ApproveReport = () => {
           raidApproved: response.data.raid.raidApproved,
         },
       }));
-
+      
       setShowApproveModal(false);
     } catch (error) {
       console.error("Error approving raid:", error);

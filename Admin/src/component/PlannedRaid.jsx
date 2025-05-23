@@ -8,12 +8,11 @@ const PlannedRaid = () => {
   const [status, setStatus] = useState("pending");
   const [officers, setOfficers] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
-  const [loading, setloading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const adminId = localStorage.getItem("adminId");
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
-  // Form data state
   const [formData, setFormData] = useState({
     inCharge: "",
     culpritName: "",
@@ -22,12 +21,9 @@ const PlannedRaid = () => {
     scheduledDate: "",
     description: "",
     warrantFilePath: "",
-    adminId, // This will store the server path after upload
+    adminId,
   });
 
-  // console.log(formData);
-
-  // Error states
   const [errors, setErrors] = useState({
     inCharge: "",
     culpritName: "",
@@ -58,13 +54,13 @@ const PlannedRaid = () => {
         setOfficers(officersList);
       } catch (error) {
         console.error("Error fetching officers:", error);
+        toast.error("Failed to load raid officers");
       }
     };
 
     fetchOfficers();
   }, []);
 
-  // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -73,12 +69,10 @@ const PlannedRaid = () => {
     }));
   };
 
-  // Handle file upload click
   const handleFileClick = () => {
     fileInputRef.current.click();
   };
 
-  // Upload warrant file to server
   const uploadWarrantFile = async (file) => {
     if (!file) return;
 
@@ -95,6 +89,7 @@ const PlannedRaid = () => {
             "Content-Type": "multipart/form-data",
             "x-access-key": import.meta.env.VITE_SECRET_ACCESS_KEY,
           },
+          timeout: 30000, // 30 seconds timeout
         }
       );
 
@@ -107,7 +102,6 @@ const PlannedRaid = () => {
     }
   };
 
-  // Handle file selection
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -135,15 +129,16 @@ const PlannedRaid = () => {
         warrantFilePath: filePath,
       }));
       setErrors((prev) => ({ ...prev, warrantFile: "" }));
+      toast.success("Warrant uploaded successfully");
     } catch (error) {
       setErrors((prev) => ({
         ...prev,
         warrantFile: "Failed to upload warrant file",
       }));
+      toast.error("Failed to upload warrant");
     }
   };
 
-  // Form validation
   const validateForm = () => {
     let valid = true;
     const newErrors = {
@@ -156,7 +151,6 @@ const PlannedRaid = () => {
       warrantFile: "",
     };
 
-    // Validate each field
     if (!formData.inCharge) {
       newErrors.inCharge = "Please select a raid officer";
       valid = false;
@@ -204,13 +198,14 @@ const PlannedRaid = () => {
     return valid;
   };
 
-  // Handle form submission
   const handlePublish = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
-    setloading(true);
-
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      setLoading(false);
+      return;
+    }
 
     try {
       const raidData = {
@@ -233,9 +228,6 @@ const PlannedRaid = () => {
         adminId,
       };
 
-      console.log(raidData);
-
-      // Submit the raid data to your API
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/admin/create-raid`,
         raidData,
@@ -244,11 +236,47 @@ const PlannedRaid = () => {
             "Content-Type": "application/json",
             "x-access-key": import.meta.env.VITE_SECRET_ACCESS_KEY,
           },
+          timeout: 30000, // 30 seconds timeout
         }
       );
 
-      // console.log("Raid created successfully:", response.data);
-      // Reset form after successful submission
+      const raidId = response.data.raid?._id;
+      const userId = localStorage.getItem("adminId");
+
+      // Create audit log
+      try {
+        await axios.post(
+          `${import.meta.env.VITE_BASE_URL}/admin/audit-log`,
+          {
+            action: "raid_created",
+            performedBy: userId,
+            targetId: raidId,
+            targetType: "raid",
+            changes: [
+              {
+                field: "status",
+                oldValue: null,
+                newValue: "pending",
+              },
+              {
+                field: "created_by",
+                oldValue: null,
+                newValue: userId,
+              },
+            ],
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "x-access-key": import.meta.env.VITE_SECRET_ACCESS_KEY,
+            },
+          }
+        );
+      } catch (auditError) {
+        console.error("Audit log failed:", auditError);
+      }
+
+      // Reset form
       setFormData({
         inCharge: "",
         culpritName: "",
@@ -258,20 +286,22 @@ const PlannedRaid = () => {
         description: "",
         warrantFilePath: "",
       });
-      if (fileInputRef.current) fileInputRef.current.value = "";
 
-      // Show success message or redirect
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+
       toast.success("Raid plan published successfully!");
       navigate("/admin/raids");
-      setloading(false);
     } catch (error) {
-      setloading(false);
       console.error("Error creating raid:", error);
       toast.error(
-        `Error creating raid: ${error.response?.data?.message || error.message}`
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to create raid. Please try again."
       );
     } finally {
-      setloading(false);
+      setLoading(false);
     }
   };
 
@@ -447,9 +477,10 @@ const PlannedRaid = () => {
 
           <button
             type="submit"
-            className="bg-[#213448] text-white font-bold px-6 py-2 rounded-md hover:bg-[#547792]"
+            className="bg-[#213448] text-white font-bold px-6 py-2 rounded-md hover:bg-[#547792] disabled:opacity-50"
+            disabled={loading}
           >
-            Publish
+            {loading ? "Publishing..." : "Publish"}
           </button>
         </div>
       </form>

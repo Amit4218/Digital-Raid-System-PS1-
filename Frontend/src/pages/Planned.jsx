@@ -7,6 +7,7 @@ import UploadVideo from "../components/UploadVideo";
 import { toast } from "react-toastify";
 import Loading from "../components/Loading";
 import TokenValidator from "../utils/tokenValidator";
+import FineForm from "../components/FineForm";
 
 function Planned() {
   TokenValidator();
@@ -20,6 +21,7 @@ function Planned() {
   const evidenceId = localStorage.getItem("evidenceId");
   const raidId = localStorage.getItem("raidId");
   const navigate = useNavigate();
+  const userId = localStorage.getItem("userId");
 
   useEffect(() => {
     setLoading(true);
@@ -101,6 +103,34 @@ function Planned() {
       );
       console.log(res);
       if (res.status == 200) {
+        //logic to update the raid status
+        try {
+          await axios.post(`${import.meta.env.VITE_BASE_URL}/admin/audit-log`, {
+            action: "raid_submitted",
+            performedBy: userId,
+            targetId: raidId,
+            targetType: "raid",
+            changes: [
+              {
+                field: "status",
+                oldValue: "in_progress",
+                newValue: "completed",
+              },
+              {
+                field: "completion_details",
+                oldValue: null,
+                newValue: {
+                  writtenReport: writtenReport,
+                  criminalId: crimainalId,
+                  evidenceId: evidenceId,
+                },
+              },
+            ],
+          });
+        } catch (auditError) {
+          console.error("Failed to create audit log:", auditError);
+        }
+
         toast.success("Raid Completed Successfully");
         setTimeout(() => {
           setLoading(false);
@@ -386,12 +416,15 @@ function Planned() {
         <div className="">
           <SearchCriminal />
         </div>
-
+        <div className="w-[100vw] flex flex-wrap flex-col md:grid md:grid-cols-2 gap-4 mb-4 mt-20 justify-center items-center">
+          <div>
+            <FineForm/>
+          </div>
         {/* Uploading the image */}
         <div className="mt-3">
           <UploadImage />
         </div>
-
+        </div>
         {/* Uploading the Video */}
 
         <div className="">

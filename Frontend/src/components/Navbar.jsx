@@ -164,7 +164,7 @@ const Navbar = () => {
             </button>
             <button
               onClick={(e) => {
-                navigate("/unplanned-raid");
+                navigate("/finished-raids");
                 setIsMenuOpen(false);
               }}
               className="w-full px-4 py-2 text-white font-semibold rounded-full border border-white cursor-pointer shadow-md bg-[#213448] hover:bg-[#435465]"
@@ -173,7 +173,7 @@ const Navbar = () => {
             </button>
             <button
               onClick={(e) => {
-                navigate("/unplanned-raid");
+                navigate("/bailbond");
                 setIsMenuOpen(false);
               }}
               className="w-full px-4 py-2 text-white font-semibold rounded-full border border-white cursor-pointer shadow-md bg-[#213448] hover:bg-[#435465]"

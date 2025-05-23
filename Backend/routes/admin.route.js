@@ -231,101 +231,68 @@ router.post("/raid-evidence/:raidId", async (req, res) => {
   }
 });
 
-//creating logs report
-
-router.post("/create-log", async (req, res) => {
+// Create an audit log entry
+router.post("/audit-log", async (req, res) => {
   try {
-    const { action, performedBy, referenceId } = req.body;
-
-    if (!action || !performedBy || !referenceId) {
-      return res.status(400).json({
-        error: "action, performedBy, and referenceId are required.",
-      });
-    }
-
-    let changes = [];
-
-    // Handle each action type
-    switch (action) {
-      case "raid_created":
-      case "raid_submitted":
-      case "raid_approved": {
-        const raid = await Raid.findById(referenceId).lean();
-        if (!raid) {
-          return res.status(404).json({ error: "Raid not found." });
-        }
-
-        changes = [
-          { field: "raidId", oldValue: null, newValue: raid._id },
-          { field: "status", oldValue: null, newValue: raid.status || action },
-          {
-            field: "location",
-            oldValue: null,
-            newValue: raid.location || null,
-          },
-          {
-            field: "officerInCharge",
-            oldValue: null,
-            newValue: raid.inCharge || null,
-          },
-        ];
-        break;
-      }
-
-      case "handover_log": {
-        const handover = await HandoverRecord.findById(referenceId)
-          .populate("raidId")
-          .populate("exhibitIds")
-          .populate("handoverFrom")
-          .populate("handoverTo.adminId")
-          .lean();
-
-        if (!handover) {
-          return res.status(404).json({ error: "Handover record not found." });
-        }
-
-        changes = [
-          { field: "raidId", oldValue: null, newValue: handover.raidId?._id },
-          {
-            field: "exhibitIds",
-            oldValue: null,
-            newValue: handover.exhibitIds,
-          },
-          {
-            field: "handoverFrom",
-            oldValue: null,
-            newValue: handover.handoverFrom?._id,
-          },
-          {
-            field: "handoverTo",
-            oldValue: null,
-            newValue: handover.handoverTo?.adminId
-              ? handover.handoverTo.adminId?._id
-              : handover.handoverTo.externalDetails,
-          },
-          { field: "purpose", oldValue: null, newValue: handover.purpose },
-          { field: "quantity", oldValue: null, newValue: handover.quantity },
-        ];
-        break;
-      }
-
-      default:
-        return res.status(400).json({ error: "Invalid action type." });
-    }
-
-    const auditLog = new AuditLog({
+    const {
       action,
       performedBy,
+      targetId,
+      targetType,
+      changes,
+    } = req.body;
+
+    if (!action || !performedBy) {
+      return res.status(400).json({ message: "action and performedBy are required" });
+    }
+
+    const newLog = new AuditLog({
+      action,
+      performedBy,
+      targetId,
+      targetType,
       changes,
     });
 
-    await auditLog.save();
-    return res
-      .status(201)
-      .json({ message: "Audit log created successfully", auditLog });
+    await newLog.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Audit log created successfully",
+      data: newLog,
+    });
   } catch (error) {
-    console.error("Audit log error:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+    console.error("Error creating audit log:", error);
+    res.status(500).json({
+      message: "Server error while creating audit log",
+      error: error.message,
+    });
+  }
+});
+
+// Fetch audit logs, optionally filtered by targetId or performedBy
+router.get("/audit-logs", async (req, res) => {
+  try {
+    const { targetId, performedBy } = req.query;
+
+    const filter = {};
+    if (targetId) filter.targetId = targetId;
+    if (performedBy) filter.performedBy = performedBy;
+
+    const logs = await AuditLog.find(filter)
+      .populate("performedBy", "name email")  // populate user name, email for convenience
+      .sort({ performedAt: -1 });             // most recent first
+
+    res.status(200).json({
+      success: true,
+      data: logs,
+    });
+  } catch (error) {
+    console.error("Error fetching audit logs:", error);
+    res.status(500).json({
+      message: "Server error while fetching audit logs",
+      error: error.message,
+    });
   }
 });
 
