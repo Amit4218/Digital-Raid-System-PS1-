@@ -26,8 +26,6 @@ function Raids() {
         );
 
         const allRaids = res.data.raids || [];
-
-        // Exclude unplanned raids with pending approval
         const filtered = allRaids.filter(
           (raid) =>
             !(
@@ -35,14 +33,10 @@ function Raids() {
               raid.unplannedRequestDetails?.approvalStatus === "pending"
             )
         );
-        console.log("Filtered Raids:", filtered);
-
         setRaids(filtered);
-        setLoading(false);
       } catch (error) {
         console.error("Error fetching raids:", error);
         toast.error("Failed to fetch raids");
-        setLoading(false);
       } finally {
         setLoading(false);
       }
@@ -52,7 +46,7 @@ function Raids() {
   }, []);
 
   const handleCreateRaid = () => {
-    navigate("/admin/planned-raid"); // for creating new raid, no ID needed
+    navigate("/admin/planned-raid");
   };
 
   const renderRows = () =>
@@ -62,14 +56,12 @@ function Raids() {
         status: raid.status,
         culprit: raid.culprits?.[0]?.name || "N/A",
         address: raid.location?.address || "N/A",
-        // type: raid.raidType || "N/A",
-        className: ` hover:bg-[#f8fafc] cursor-pointer ${
+        className: `hover:bg-[#f8fafc] cursor-pointer ${
           idx % 2 === 0 ? "even:bg-[#f8fafc]" : "odd:bg-white"
         }`,
       };
 
       let StatusComponent;
-
       switch (raid.status) {
         case "pending":
           StatusComponent = Pending;
@@ -95,30 +87,36 @@ function Raids() {
     });
 
   return (
-    <div className="flex flex-col items-center max-h-[90vh] bg-[#f8fafc] pt-20 pb-8 ">
-      <div className="w-4/5 mx-auto bg-white rounded-xl shadow-lg overflow-y-scroll no-scrollbar border border-[#e2e8f0]">
-        <div className="grid grid-cols-6 gap-4 bg-[#213448] p-4 font-semibold text-white">
-          <div>Raid ID</div>
-          <div>Culprit Name</div>
-          <div>Address</div>
-          <div>Raid Type</div>
-          <div>Status</div>
-        </div>
+    <div className="flex flex-col items-center min-h-[90vh] pt-20 pb-8 relative overflow-hidden bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPgogIDxkZWZzPgogICAgPHBhdHRlcm4gaWQ9IndhdmUiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj4KICAgICAgPHBhdGggZD0iTTAgNTAgQzI1IDI1LCAyNSA3NSwgNTAgNTAgQzc1IDI1LCA3NSA3NSwgMTAwIDUwIiBzdHJva2U9IiNlMGYyZmUiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIgLz4KICAgICAgPHBhdGggZD0iTTAgMCBMMTAwIDAgTDEwMCAxMDAgTDAgMTAwIFoiIGZpbGw9IiNmOGZhZmMiIC8+CiAgICA8L3BhdHRlcm4+CiAgPC9kZWZzPgogIDxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjd2F2ZSkiIC8+Cjwvc3ZnPg==')]">
+      {/* Semi-transparent overlay */}
+      <div className="absolute inset-0 bg-white/70 z-0"></div>
+      
+      {/* Content container */}
+      <div className="relative z-10 w-4/5 mx-auto">
+        <div className="bg-white rounded-xl shadow-lg overflow-y-scroll no-scrollbar border border-[#e2e8f0]">
+          <div className="grid grid-cols-6 gap-4 bg-[#213448] p-4 font-semibold text-white sticky top-0 z-20">
+            <div>Raid ID</div>
+            <div>Culprit Name</div>
+            <div>Address</div>
+            <div>Raid Type</div>
+            <div>Status</div>
+          </div>
 
-        <div className="divide-y divide-[#e2e8f0]">
-          {loading ? (
-            <div className="p-4 text-center text-gray-600 ">Loading...</div>
-          ) : raids.length === 0 ? (
-            <div className="p-4 text-center text-gray-600">No raids found.</div>
-          ) : (
-            renderRows()
-          )}
+          <div className="divide-y divide-[#e2e8f0] relative z-10">
+            {loading ? (
+              <div className="p-4 text-center text-gray-600">Loading...</div>
+            ) : raids.length === 0 ? (
+              <div className="p-4 text-center text-gray-600">No raids found.</div>
+            ) : (
+              renderRows()
+            )}
+          </div>
         </div>
       </div>
 
       <button
         onClick={handleCreateRaid}
-        className="fixed bottom-6 right-6 bg-[#213448] text-white px-6 py-3 rounded-full shadow-lg hover:bg-[#1a2a3a] transition-colors flex items-center gap-2"
+        className="fixed bottom-6 right-6 bg-[#213448] text-white px-6 py-3 rounded-full shadow-lg hover:bg-[#1a2a3a] transition-colors flex items-center gap-2 z-20"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
