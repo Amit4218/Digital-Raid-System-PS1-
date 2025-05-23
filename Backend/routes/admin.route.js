@@ -25,6 +25,10 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
+    if (user.role !== "head_official") {
+      return res.status(400).json({ message: "Unauthorized" });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
@@ -86,6 +90,12 @@ router.post("/create-raid", async (req, res) => {
       return res.status(400).json({ message: "Invalid culprit details" });
     }
 
+    const admin = await User.findById(adminId);
+
+    if (!admin) {
+      return res.status(404).json({ message: "unauthorized" });
+    }
+
     const newRaid = await Raid.create({
       raidType: "planned",
       inCharge: user.username,
@@ -108,6 +118,12 @@ router.post("/create-raid", async (req, res) => {
       scheduledDate: scheduledDate || Date.now(),
       description,
       createdBy: adminId,
+      unplannedRequestDetails: {
+        approvedBy: adminId,
+        email: admin.email,
+        approvalStatus: "approved",
+        approvalDate: Date.now(),
+      },
       raidApproved: {
         isApproved: true,
         approvedBy: adminId,
@@ -119,14 +135,25 @@ router.post("/create-raid", async (req, res) => {
       },
     });
 
-    const email = user.email;
+    const Emails = [admin.email, admin.email];
+    // console.log(Emails);
 
     const data = {
       subject: "Raid Assignment Notification",
       text: `An Planned Raid has been Registered \n The Raid was created By : ${adminId}.\n The Raid has been scheduled for: ${newRaid.scheduledDate}\n Suspect Name : ${culprits[0].name}\n Suspect Address: ${newRaid.location.address}.\n Description : ${description}  `,
     };
 
-    const mail = sendEmail(email, data);
+    // Send emails sequentially with error handling
+    for (let i = 0; i < Emails.length; i++) {
+      try {
+        const mail = await sendEmail(Emails[i], data);
+
+        // console.log(mail);
+      } catch (emailError) {
+        console.error(`Failed to send email to ${Emails[i]}:`, emailError);
+        // Continue sending to other emails even if one fails
+      }
+    }
 
     res.status(201).json({
       message: "Unplanned raid request created successfully",
