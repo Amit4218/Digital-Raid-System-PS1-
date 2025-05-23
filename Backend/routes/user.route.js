@@ -353,6 +353,28 @@ router.post("/handover/:raidId", async (req, res) => {
   }
 });
 
+// handover get route
+router.get("/handover-records", async (req, res) => {
+  const { userId } = req.query;
+  
+  try {
+    const records = await HandoverRecord.find({
+      "custodyChain.handoverFrom.userId": userId
+    });
+    
+    res.status(200).json({
+      success: true,
+      data: records
+    });
+  } catch (error) {
+    console.error("Error fetching user handover records:", error);
+    res.status(500).json({
+      message: "Failed to fetch user records",
+      error: error.message
+    });
+  }
+});
+
 function generateSignatureHash(fromSignature, toSignature) {
   return {
     fromHash: crypto.createHash("sha256").update(fromSignature).digest("hex"),

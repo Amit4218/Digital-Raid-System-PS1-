@@ -150,6 +150,26 @@ const EvidenceHandover = () => {
     }
   };
 
+  const updateCurrentHolder = async (evidenceId, currentHolder) => {
+    try {
+      const response = await axios.put(
+        `${
+          import.meta.env.VITE_BASE_URL
+        }/user/update-current-holder/${evidenceId}`,
+        { currentHolder },
+        {
+          headers: {
+            "x-access-key": import.meta.env.VITE_SECRET_ACCESS_KEY,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error updating current holder:", error);
+      throw error;
+    }
+  };
+
   const handleFormSubmit = async (e) => {
     e.preventDefault();
 
@@ -188,6 +208,14 @@ const EvidenceHandover = () => {
     const selectedOfficer = officers.find(
       (officer) => officer.username === formData.receiverName
     );
+
+    // Determine the current holder information (just the name)
+    let currentHolder;
+    if (isReceiverExternal) {
+      currentHolder = formData.externalReceiverDetails.name;
+    } else {
+      currentHolder = formData.receiverName;
+    }
 
     const custodyEntry = {
       handoverFrom: {
@@ -233,14 +261,16 @@ const EvidenceHandover = () => {
         }
       );
 
+      // Then update the current holder with just the name
+      const selectedExhibit = exhibits.find(
+        (exhibit) => exhibit.exhibitId === formData.exhibitId
+      );
+
+      if (selectedExhibit) {
+        await updateCurrentHolder(selectedExhibit._id, currentHolder);
+      }
+
       toast.success("Handover recorded successfully!");
-      
-      
-
-      
-
-
-
       navigate("/finished-raids");
     } catch (error) {
       console.error("Error submitting handover:", error);
