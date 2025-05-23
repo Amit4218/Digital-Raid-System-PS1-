@@ -107,6 +107,15 @@ router.post("/create-raid", async (req, res) => {
       scheduledDate: scheduledDate || Date.now(),
       description,
       createdBy: adminId,
+      raidApproved: {
+        isApproved: true,
+        approvedBy: adminId,
+        raidHash: crypto
+          .createHash("sha256")
+          .update(`${warrant}`)
+          .digest("hex"),
+        approvalDate: Date.now(),
+      },
     });
 
     const email = user.email;
@@ -413,7 +422,6 @@ router.post("/upload-warrant", upload.single("warrant"), (req, res) => {
   });
 });
 
-
 // PUT route to approve a completed raid
 router.put("/raid-approve/:id", async (req, res) => {
   try {
@@ -427,15 +435,15 @@ router.put("/raid-approve/:id", async (req, res) => {
 
     // Find the raid
     const raid = await Raid.findById(raidId);
-    
+
     if (!raid) {
       return res.status(404).json({ message: "Raid not found" });
     }
 
     // Check if raid is in 'completed' status
     if (raid.status !== "completed") {
-      return res.status(400).json({ 
-        message: "Raid must be in 'completed' status to be approved" 
+      return res.status(400).json({
+        message: "Raid must be in 'completed' status to be approved",
       });
     }
 
@@ -452,7 +460,7 @@ router.put("/raid-approve/:id", async (req, res) => {
       location: raid.location.address,
       status: "completed_approved",
       timestamp: new Date().toISOString(),
-      approvedBy: approvedBy
+      approvedBy: approvedBy,
     };
 
     // Convert the hash data to a string and create a hash
@@ -471,25 +479,23 @@ router.put("/raid-approve/:id", async (req, res) => {
           isApproved: true,
           approvedBy: approvedBy,
           raidHash: raidHash,
-          approvalDate: new Date()
-        }
+          approvalDate: new Date(),
+        },
       },
       { new: true } // Return the updated document
     );
 
     res.status(200).json({
       message: "Raid approved successfully",
-      raid: updatedRaid
+      raid: updatedRaid,
     });
-
   } catch (error) {
     console.error("Error approving raid:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       message: "Internal server error",
-      error: error.message 
+      error: error.message,
     });
   }
 });
-
 
 export default router;
