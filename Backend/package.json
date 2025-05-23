@@ -18,6 +18,10 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.14.2",
     "multer": "^2.0.0",
-    "nodemailer": "^7.0.3"
+    "nodemailer": "^7.0.3",
+    "serve-favicon": "^2.5.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
   }
 }

@@ -1,6 +1,4 @@
 import React, { useEffect, useRef } from "react";
-
-// Images imports (your images)
 import img1 from "../Images/link1.png";
 import img2 from "../Images/link2.png";
 import img3 from "../Images/link3.png";
@@ -74,23 +72,17 @@ const InfiniteScrolling = () => {
 
       animationRef.current = requestAnimationFrame(step);
     };
-
     animationRef.current = requestAnimationFrame(step);
-
     return () => cancelAnimationFrame(animationRef.current);
   }, []);
-
   const duplicatedImages = [...images, ...images];
   const duplicatedLinks = [...links, ...links];
-
   const handleMouseEnter = () => {
     isHoveredRef.current = true;
   };
-
   const handleMouseLeave = () => {
     isHoveredRef.current = false;
   };
-
   return (
     <div className="w-full select-none border-t border-green-500 pt-6 py-6">
       <div
@@ -121,13 +113,10 @@ const InfiniteScrolling = () => {
           </a>
         ))}
       </div>
-
-      {/* Label below */}
       <div className="mt-6 bg-green-100 text-center text-lg font-medium py-2 rounded shadow-md">
         E-SERVICES
       </div>
     </div>
   );
 };
-
 export default InfiniteScrolling;

@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-
 const links = [
   {
     label: "Department",
@@ -30,7 +29,6 @@ const links = [
     url: "https://excise.sikkim.gov.in/CommonUser/Portal_New_excise_commissioner.aspx",
   },
 ];
-
 const ChevronDown = ({ className = "" }) => (
   <svg
     className={`w-4 h-4 ${className}`}
@@ -43,7 +41,6 @@ const ChevronDown = ({ className = "" }) => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
   </svg>
 );
-
 const ChevronUp = ({ className = "" }) => (
   <svg
     className={`w-4 h-4 ${className}`}
@@ -56,10 +53,8 @@ const ChevronUp = ({ className = "" }) => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
   </svg>
 );
-
 const AboutUs = () => {
   const [open, setOpen] = useState(false);
-
   return (
     <div className="relative">
       <button
@@ -71,7 +66,6 @@ const AboutUs = () => {
           {open ? <ChevronUp className="text-red-600" /> : <ChevronDown />}
         </span>
       </button>
-
       <div
         className={`absolute mt-2 bg-white text-black rounded-md shadow-lg min-w-[220px] z-50 transition-all duration-300 transform origin-top ${
           open
@@ -96,5 +90,4 @@ const AboutUs = () => {
     </div>
   );
 };
-
 export default AboutUs;
