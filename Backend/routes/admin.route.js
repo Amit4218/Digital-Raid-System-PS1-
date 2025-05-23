@@ -9,6 +9,7 @@ import HandoverRecord from "../models/handoverRecords.model.js";
 import upload from "../config/multer.config.js";
 import sendEmail from "../utils/nodemailer.util.js";
 import Evidence from "../models/evidence.model.js";
+import BlackListedToken from "../models/blackList.model.js";
 import crypto from "crypto";
 
 const router = express.Router();
@@ -22,6 +23,10 @@ router.post("/login", async (req, res) => {
 
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    if (user.role !== "head_official") {
+      return res.status(400).json({ message: "Unauthorized" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -85,6 +90,12 @@ router.post("/create-raid", async (req, res) => {
       return res.status(400).json({ message: "Invalid culprit details" });
     }
 
+    const admin = await User.findById(adminId);
+
+    if (!admin) {
+      return res.status(404).json({ message: "unauthorized" });
+    }
+
     const newRaid = await Raid.create({
       raidType: "planned",
       inCharge: user.username,
@@ -107,16 +118,42 @@ router.post("/create-raid", async (req, res) => {
       scheduledDate: scheduledDate || Date.now(),
       description,
       createdBy: adminId,
+      unplannedRequestDetails: {
+        approvedBy: adminId,
+        email: admin.email,
+        approvalStatus: "approved",
+        approvalDate: Date.now(),
+      },
+      raidApproved: {
+        isApproved: true,
+        approvedBy: adminId,
+        raidHash: crypto
+          .createHash("sha256")
+          .update(`${warrant}`)
+          .digest("hex"),
+        approvalDate: Date.now(),
+      },
     });
 
-    const email = user.email;
+    const Emails = [admin.email, admin.email];
+    // console.log(Emails);
 
     const data = {
       subject: "Raid Assignment Notification",
       text: `An Planned Raid has been Registered \n The Raid was created By : ${adminId}.\n The Raid has been scheduled for: ${newRaid.scheduledDate}\n Suspect Name : ${culprits[0].name}\n Suspect Address: ${newRaid.location.address}.\n Description : ${description}  `,
     };
 
-    const mail = sendEmail(email, data);
+    // Send emails sequentially with error handling
+    for (let i = 0; i < Emails.length; i++) {
+      try {
+        const mail = await sendEmail(Emails[i], data);
+
+        // console.log(mail);
+      } catch (emailError) {
+        console.error(`Failed to send email to ${Emails[i]}:`, emailError);
+        // Continue sending to other emails even if one fails
+      }
+    }
 
     res.status(201).json({
       message: "Unplanned raid request created successfully",
@@ -413,7 +450,6 @@ router.post("/upload-warrant", upload.single("warrant"), (req, res) => {
   });
 });
 
-
 // PUT route to approve a completed raid
 router.put("/raid-approve/:id", async (req, res) => {
   try {
@@ -427,15 +463,15 @@ router.put("/raid-approve/:id", async (req, res) => {
 
     // Find the raid
     const raid = await Raid.findById(raidId);
-    
+
     if (!raid) {
       return res.status(404).json({ message: "Raid not found" });
     }
 
     // Check if raid is in 'completed' status
     if (raid.status !== "completed") {
-      return res.status(400).json({ 
-        message: "Raid must be in 'completed' status to be approved" 
+      return res.status(400).json({
+        message: "Raid must be in 'completed' status to be approved",
       });
     }
 
@@ -452,7 +488,7 @@ router.put("/raid-approve/:id", async (req, res) => {
       location: raid.location.address,
       status: "completed_approved",
       timestamp: new Date().toISOString(),
-      approvedBy: approvedBy
+      approvedBy: approvedBy,
     };
 
     // Convert the hash data to a string and create a hash
@@ -471,25 +507,62 @@ router.put("/raid-approve/:id", async (req, res) => {
           isApproved: true,
           approvedBy: approvedBy,
           raidHash: raidHash,
-          approvalDate: new Date()
-        }
+          approvalDate: new Date(),
+        },
       },
       { new: true } // Return the updated document
     );
 
     res.status(200).json({
       message: "Raid approved successfully",
-      raid: updatedRaid
+      raid: updatedRaid,
     });
-
   } catch (error) {
     console.error("Error approving raid:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       message: "Internal server error",
-      error: error.message 
+      error: error.message,
     });
   }
 });
 
+// Logout Route
+router.post("/logout", async (req, res) => {
+  const { token } = req.body;
+
+  if (!token) {
+    return res.status(400).json({ message: "Token is required" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const session = await Sessions.findOne({ _id: decoded.sessionId });
+
+    if (session) {
+      session.loggedOutAt = new Date();
+      await session.save();
+    } else {
+      return res.status(400).json({ message: "Session not found" });
+    }
+
+    await BlackListedToken.create({
+      token,
+    });
+
+    res.status(200).json({ message: "Logged Out successfully" });
+  } catch (error) {
+    console.error("Logout Error:", error);
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({ message: "Token expired" });
+    }
+    res.status(500).json({ message: "Logout error", error: error.message });
+  }
+});
 
 export default router;

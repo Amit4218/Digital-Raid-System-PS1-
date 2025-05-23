@@ -9,6 +9,7 @@ import Licence from "../models/licence.model.js";
 import HandoverRecord from "../models/handoverRecords.model.js";
 import sendEmail from "../utils/nodemailer.util.js";
 import Evidence from "../models/evidence.model.js";
+import BlackListedToken from "../models/blackList.model.js";
 import crypto from "crypto";
 import path from "path";
 import fs from "fs/promises";
@@ -440,6 +441,10 @@ router.post("/logout", async (req, res) => {
       return res.status(400).json({ message: "Session not found" });
     }
 
+    await BlackListedToken.create({
+      token,
+    });
+
     res.status(200).json({ message: "Logged Out successfully" });
   } catch (error) {
     console.error("Logout Error:", error);
@@ -564,14 +569,14 @@ router.post("/confirm-raid", async (req, res) => {
     const raid = await Raid.findByIdAndUpdate(raidId, {
       status: "completed",
       evidenceId,
-      writtenReport,
+      writtenReport: "Not Available" || writtenReport,
       actualEndDate: Date.now(),
       licence: {
         holderName: licence.licenceHolder || null,
         licenceId: licence.licenceId || null,
       },
       $set: {
-        "culprits.$[].identification": criminal.criminalId || null,
+        "culprits.$[].identification": null || criminal.criminalId,
       },
     });
 

@@ -1,13 +1,16 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const PublicGrievance = () => {
   const [clicked, setClicked] = useState(false);
+  const navigate = useNavigate();   
 
   const handleClick = () => {
     setClicked(true);
-    setTimeout(() => setClicked(false), 300); // Reset animation after a short delay
-    // You can open a modal or trigger a function here
-    console.log("Public grievance button clicked");
+    setTimeout(() => {
+      setClicked(false);
+      navigate("/public-sign-up"); 
+    }, 300);
   };
 
   return (

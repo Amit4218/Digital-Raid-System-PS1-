@@ -1,12 +1,17 @@
 import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+import Loading from "./Loading";
 
 const PlannedRaid = () => {
   const [status, setStatus] = useState("pending");
   const [officers, setOfficers] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [loading, setloading] = useState(false);
   const adminId = localStorage.getItem("adminId");
   const fileInputRef = useRef(null);
+  const navigate = useNavigate();
 
   // Form data state
   const [formData, setFormData] = useState({
@@ -19,6 +24,8 @@ const PlannedRaid = () => {
     warrantFilePath: "",
     adminId, // This will store the server path after upload
   });
+
+  // console.log(formData);
 
   // Error states
   const [errors, setErrors] = useState({
@@ -201,6 +208,8 @@ const PlannedRaid = () => {
   const handlePublish = async (e) => {
     e.preventDefault();
 
+    setloading(true);
+
     if (!validateForm()) return;
 
     try {
@@ -238,7 +247,7 @@ const PlannedRaid = () => {
         }
       );
 
-      console.log("Raid created successfully:", response.data);
+      // console.log("Raid created successfully:", response.data);
       // Reset form after successful submission
       setFormData({
         inCharge: "",
@@ -252,14 +261,21 @@ const PlannedRaid = () => {
       if (fileInputRef.current) fileInputRef.current.value = "";
 
       // Show success message or redirect
-      alert("Raid plan published successfully!");
+      toast.success("Raid plan published successfully!");
+      navigate("/admin/raids");
+      setloading(false);
     } catch (error) {
+      setloading(false);
       console.error("Error creating raid:", error);
-      alert(
+      toast.error(
         `Error creating raid: ${error.response?.data?.message || error.message}`
       );
+    } finally {
+      setloading(false);
     }
   };
+
+  if (loading) return <Loading />;
 
   return (
     <div className="p-6 min-h-screen mt-5">

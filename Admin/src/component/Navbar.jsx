@@ -3,19 +3,33 @@ import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import Notification from "./Notification";
+import axios from "axios";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const image = localStorage.getItem("adminpicture");
   const [isOpen, setIsOpen] = useState(false); // State for mobile menu
+  const token = localStorage.getItem("token");
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("adminId");
-    localStorage.removeItem("adminpicture");
+  const handleLogout = async () => {
+    try {
+      const res = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/admin/logout`,
+        { token }
+      );
 
-    toast.success("Logged out successfully");
-    navigate("/");
+      if (res.status === 200) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("adminId");
+        localStorage.removeItem("adminpicture");
+        toast.success("Logged out successfully");
+        navigate("/");
+      } else {
+        toast.error("Error logging out.. try again");
+      }
+    } catch (error) {
+      toast.error("Something went wrong");
+    }
   };
 
   return (

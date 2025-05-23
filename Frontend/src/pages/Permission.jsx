@@ -106,6 +106,7 @@ function Permission() {
       setBluetoothEnabled(false);
     }
   };
+  
   const handleConfirm = async () => {
     if (locationEnabled && bluetoothEnabled) {
       setloading(true);
