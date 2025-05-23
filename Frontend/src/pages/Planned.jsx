@@ -84,6 +84,10 @@ function Planned() {
     );
     if (confirm === "CONFIRM") {
       setLoading(true);
+      if (!info.crimainalId || !info.licenceId || !info.evidenceId) {
+        window.location.reload();
+        SubmitRaid();
+      }
       const res = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/user/confirm-raid`,
         info
