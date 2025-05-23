@@ -38,6 +38,95 @@ const EvidenceHandover = () => {
     consent: false,
   });
 
+  // Enhanced audit logging with retry and fallback
+  const logAudit = async (
+    action,
+    targetId,
+    targetType,
+    changes,
+    retryCount = 0
+  ) => {
+    const maxRetries = 2;
+    const userId = localStorage.getItem("userId");
+
+    const auditData = {
+      action,
+      performedBy: userId,
+      targetId,
+      targetType,
+      changes,
+      timestamp: new Date().toISOString(),
+      source: "handover_log",
+    };
+
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/admin/audit-log`,
+        auditData,
+        {
+          headers: {
+            "x-access-key": import.meta.env.VITE_SECRET_ACCESS_KEY,
+            "Content-Type": "application/json",
+          },
+          timeout: 3000,
+        }
+      );
+
+      if (response.status !== 201) {
+        throw new Error(`Unexpected status code: ${response.status}`);
+      }
+
+      // Clear any previous failed logs for this action
+      const logKey = `audit-fallback-${targetId}-${action}`;
+      localStorage.removeItem(logKey);
+
+      return true;
+    } catch (error) {
+      console.error(`Audit log attempt ${retryCount + 1} failed:`, {
+        error: error.message,
+        auditData,
+      });
+
+      if (retryCount < maxRetries) {
+        // Wait for 1 second before retrying
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        return logAudit(action, targetId, targetType, changes, retryCount + 1);
+      }
+
+      // Final fallback to localStorage
+      const logKey = `audit-fallback-${targetId}-${action}-${Date.now()}`;
+      localStorage.setItem(logKey, JSON.stringify(auditData));
+      console.warn("Audit log saved to localStorage as fallback:", logKey);
+
+      return false;
+    }
+  };
+
+  // Process any pending audit logs from localStorage
+  const processPendingAuditLogs = async () => {
+    const pendingLogs = Object.entries(localStorage)
+      .filter(([key]) => key.startsWith("audit-fallback-"))
+      .map(([key, value]) => ({ key, data: JSON.parse(value) }));
+
+    for (const log of pendingLogs) {
+      try {
+        const success = await logAudit(
+          log.data.action,
+          log.data.targetId,
+          log.data.targetType,
+          log.data.changes
+        );
+
+        if (success) {
+          localStorage.removeItem(log.key);
+          console.log("Successfully processed pending audit log:", log.key);
+        }
+      } catch (error) {
+        console.error("Failed to process pending audit log:", log.key, error);
+      }
+    }
+  };
+
   // Get officers
   useEffect(() => {
     const getOfficers = async () => {
@@ -62,6 +151,7 @@ const EvidenceHandover = () => {
     };
 
     getOfficers();
+    processPendingAuditLogs(); // Process any pending logs on component mount
   }, []);
 
   // Get evidence exhibit Type
@@ -79,16 +169,10 @@ const EvidenceHandover = () => {
         );
 
         const exhibitsData = res.data.evidence || [];
-
-        if (exhibitsData.length === 0) {
-          toast.info("No exhibits found for this raid");
-        }
-
         setExhibits(exhibitsData);
       } catch (error) {
         console.error("Failed to fetch exhibit data:", error);
         toast.error("Failed to load exhibit data");
-        setExhibits([]);
       } finally {
         setLoading(false);
       }
@@ -103,7 +187,6 @@ const EvidenceHandover = () => {
       const selectedExhibit = exhibits.find(
         (exhibit) => exhibit.exhibitType === formData.exhibitType
       );
-
       if (selectedExhibit) {
         setFormData((prev) => ({
           ...prev,
@@ -112,7 +195,6 @@ const EvidenceHandover = () => {
         }));
       }
     } else {
-      // Clear exhibitId and itemDescription if no exhibitType is selected
       setFormData((prev) => ({
         ...prev,
         exhibitId: "",
@@ -192,15 +274,6 @@ const EvidenceHandover = () => {
       toast.error("Please provide your signature");
       return;
     }
-    if (!formData.toSignature && formData.receiverType === "External") {
-      // Only require toSignature if external receiver
-      toast.error("Please provide recipient's signature");
-      return;
-    }
-    if (!formData.receiverName && formData.receiverType === "Internal") {
-      toast.error("Please select a receiver officer");
-      return;
-    }
 
     const isSenderExternal = formData.senderType === "External";
     const isReceiverExternal = formData.receiverType === "External";
@@ -209,7 +282,6 @@ const EvidenceHandover = () => {
       (officer) => officer.username === formData.receiverName
     );
 
-    // Determine the current holder information (just the name)
     let currentHolder;
     if (isReceiverExternal) {
       currentHolder = formData.externalReceiverDetails.name;
@@ -235,7 +307,7 @@ const EvidenceHandover = () => {
       purpose: formData.purpose,
       digitalSignatures: {
         fromSignature: formData.fromSignature,
-        toSignature: formData.toSignature || "Pending", // 'Pending' if internal handover, or required for external
+        toSignature: formData.toSignature || "Pending",
       },
       timestamp: new Date().toISOString(),
       itemDescription: formData.itemDescription,
@@ -246,11 +318,13 @@ const EvidenceHandover = () => {
       exhibitType: formData.exhibitType,
       exhibitId: formData.exhibitId,
       custodyChain: [custodyEntry],
-      itemDescription: formData.itemDescription, // Ensure this is also sent at the top level if needed by API
+      itemDescription: formData.itemDescription,
     };
 
     try {
       setLoading(true);
+
+      // Submit handover
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/user/handover/${raidId}`,
         payload,
@@ -261,7 +335,7 @@ const EvidenceHandover = () => {
         }
       );
 
-      // Then update the current holder with just the name
+      // Update current holder
       const selectedExhibit = exhibits.find(
         (exhibit) => exhibit.exhibitId === formData.exhibitId
       );
@@ -269,6 +343,23 @@ const EvidenceHandover = () => {
       if (selectedExhibit) {
         await updateCurrentHolder(selectedExhibit._id, currentHolder);
       }
+
+      // Create audit log
+      await logAudit("evidence_handover", formData.exhibitId, "evidence", [
+        {
+          field: "currentHolder",
+          oldValue: currentOfficer?.username || "Unknown",
+          newValue: currentHolder,
+        },
+        {
+          field: "handoverDetails",
+          value: {
+            purpose: formData.purpose,
+            receiverType: formData.receiverType,
+            timestamp: new Date().toISOString(),
+          },
+        },
+      ]);
 
       toast.success("Handover recorded successfully!");
       navigate("/finished-raids");
@@ -536,7 +627,7 @@ const EvidenceHandover = () => {
                       .filter((o) => o._id !== currentOfficer?._id) // Don't show current officer as receiver
                       .map((officer) => (
                         <option key={officer._id} value={officer.username}>
-                          {officer.username} ({officer.designation})
+                          {officer.username}
                         </option>
                       ))}
                   </select>

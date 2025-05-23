@@ -6,7 +6,14 @@ const auditLogSchema = new Schema(
   {
     action: {
       type: String,
-      enum: ["raid_created", "raid_submitted", "raid_approved", "handover_log"],
+      enum: [
+        "raid_created",
+        "raid_submitted",
+        "raid_approved",
+        "handover_log",
+        "fine_imposed",
+        "evidence_handover",
+      ],
       required: true,
     },
     performedBy: {

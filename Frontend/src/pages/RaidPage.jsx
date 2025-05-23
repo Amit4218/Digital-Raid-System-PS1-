@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import Loading from "../components/Loading";
 import Navbar from "../components/Navbar";
 import TokenValidator from "../utils/tokenValidator";
+import Fine from "../components/FineForm";
 
 function RaidPage() {
   TokenValidator();
@@ -86,6 +87,7 @@ function RaidPage() {
   return (
     <>
       <Navbar />
+      <Fine />
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8">
