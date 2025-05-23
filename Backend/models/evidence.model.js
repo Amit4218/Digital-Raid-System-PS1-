@@ -91,7 +91,7 @@ const evidenceSchema = new mongoose.Schema(
       },
     },
     currentHolder: {
-      type: mongoose.Schema.ObjectId,
+      type: "String",
       required: true,
     },
     isDisposed: {

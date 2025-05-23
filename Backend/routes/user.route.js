@@ -487,7 +487,7 @@ router.post("/save-record", async (req, res) => {
         },
         uploadedAt: new Date(),
       },
-      currentHolder: raid.inchargeId, // Make sure this is the ObjectId, not the name
+      currentHolder: raid.inCharge, // Make sure this is the ObjectId, not the name
     });
 
     res.status(200).json({ message: "Success", evidence });
@@ -497,6 +497,30 @@ router.post("/save-record", async (req, res) => {
       message: "Something went wrong",
       error: error.message, // Only send error message in development
     });
+  }
+});
+
+//put request to update currentholder
+router.put("/update-current-holder/:evidenceId", async (req, res) => {
+  const { evidenceId } = req.params;
+  const { currentHolder } = req.body;
+  try {
+    if (!evidenceId) {
+      return res.status(400).json({ message: "Unauthorized" });
+    }
+    const evidence = await Evidence.findByIdAndUpdate(
+      evidenceId,
+      {
+        currentHolder: currentHolder,
+      },
+      { new: true }
+    );
+    if (!evidence) {
+      return res.status(400).json({ message: "Evidence dosent exists" });
+    }
+    res.status(200).json({ message: "Success", data: evidence });
+  } catch (error) {
+    res.status(500).json({ message: error?.message });
   }
 });
 

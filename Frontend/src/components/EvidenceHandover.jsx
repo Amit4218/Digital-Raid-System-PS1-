@@ -221,6 +221,13 @@ const EvidenceHandover = () => {
       );
 
       toast.success("Handover recorded successfully!");
+      
+      
+
+      
+
+
+
       navigate("/finished-raids");
     } catch (error) {
       console.error("Error submitting handover:", error);
