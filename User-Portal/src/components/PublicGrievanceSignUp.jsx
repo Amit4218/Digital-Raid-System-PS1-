@@ -1,27 +1,80 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaEnvelope, FaShieldAlt, FaArrowRight } from "react-icons/fa";
 import Navbar from "./Navbar";
+import axios from "axios";
 
 const PublicGrievanceSignUp = () => {
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [isOtpSent, setIsOtpSent] = useState(false);
+  const [verify, setVerify] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleSendOtp = (e) => {
+  const validateEmail = (email) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  };
+
+  const handleSendOtp = async (e) => {
     e.preventDefault();
-    // Here you would typically send OTP to the email
-    setIsOtpSent(true);
-    // Simulate OTP sending
-    console.log(`OTP sent to ${email}`);
+    setError("");
+
+    if (!validateEmail(email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/public/get-otp`,
+        { email }
+      );
+      if (response.status === 200) {
+        setVerify(response.data.otp);
+        setIsOtpSent(true); // This is the key line that was missing
+      } else {
+        setError("Error sending OTP. Please try again.");
+      }
+    } catch (error) {
+      setError(
+        error.response?.data?.message || "Error sending OTP. Please try again."
+      );
+      setIsOtpSent(false); // Only set to false on error
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setError("");
+    setIsLoading(true);
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/public/get-otp`,
+        { email }
+      );
+      if (response.status === 200) {
+        setVerify(response.data.otp);
+        setError("New OTP sent successfully!");
+      }
+    } catch (error) {
+      setError(error.response?.data?.message || "Error resending OTP.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Here you would verify the OTP
-    // For now, we'll just navigate to /complaints
-    navigate("/complains");
+    if (otp == verify) {
+      navigate("/complains");
+    } else {
+      setError("Invalid OTP. Please try again.");
+    }
   };
 
   return (
@@ -34,12 +87,18 @@ const PublicGrievanceSignUp = () => {
               Email Verification
             </h2>
             <p className="mt-2 text-center text-sm text-lime-500 font-bold">
-              We'll send you a one-time password to verify your email
+              We'll send you a one-time password to verify you.
             </p>
           </div>
 
           <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-            <div className="bg-white py-8 px-4 shadow-2xl sm:rounded-xl  sm:px-10">
+            <div className="bg-white py-8 px-4 shadow-2xl sm:rounded-xl sm:px-10">
+              {error && (
+                <div className="mb-4 text-sm text-red-600 text-center">
+                  {error}
+                </div>
+              )}
+
               {!isOtpSent ? (
                 // Email Submission Form
                 <form className="space-y-6" onSubmit={handleSendOtp}>
@@ -68,12 +127,15 @@ const PublicGrievanceSignUp = () => {
                   <div>
                     <button
                       type="submit"
-                      className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-lime-700 hover:bg-lime-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-lime-500 transition-colors"
+                      disabled={isLoading}
+                      className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-lime-700 hover:bg-lime-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-lime-500 transition-colors ${
+                        isLoading ? "opacity-70 cursor-not-allowed" : ""
+                      }`}
                     >
                       <span className="absolute left-0 inset-y-0 flex items-center pl-3">
                         <FaArrowRight className="h-5 w-5 text-lime-300 group-hover:text-lime-200 transition-colors" />
                       </span>
-                      Send OTP
+                      {isLoading ? "Sending..." : "Send OTP"}
                     </button>
                   </div>
                 </form>
@@ -111,17 +173,21 @@ const PublicGrievanceSignUp = () => {
                   <div className="flex justify-between items-center">
                     <button
                       type="button"
-                      onClick={() => setIsOtpSent(false)}
+                      onClick={() => {
+                        setIsOtpSent(false);
+                        setError("");
+                      }}
                       className="text-sm font-medium text-lime-700 hover:text-lime-800"
                     >
                       Change Email
                     </button>
                     <button
                       type="button"
-                      onClick={handleSendOtp}
-                      className="text-sm font-medium text-lime-700 hover:text-lime-800"
+                      onClick={handleResendOtp}
+                      disabled={isLoading}
+                      className="text-sm font-medium text-lime-700 hover:text-lime-800 disabled:opacity-50"
                     >
-                      Resend OTP
+                      {isLoading ? "Sending..." : "Resend OTP"}
                     </button>
                   </div>
 
