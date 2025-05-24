@@ -25,7 +25,7 @@ ChartJS.register(
   Legend
 );
 
-const Graph = () => {
+const FineGraph = () => {
   const [fineData, setFineData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -141,45 +141,43 @@ const Graph = () => {
   };
 
   return (
-    <div className="w-[50vw]">
-      <Box sx={{ p: 3 }}>
-        <Box sx={{ maxWidth: 200, mb: 3 }}>
-          <FormControl fullWidth>
-            <InputLabel>Year</InputLabel>
-            <Select
-              value={selectedYear}
-              label="Year"
-              onChange={(e) => setSelectedYear(e.target.value)}
-              disabled={loading}
-            >
-              {availableYears.map((year) => (
-                <MenuItem key={year} value={year}>
-                  {year}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Box>
-
-        {loading ? (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "400px",
-            }}
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ maxWidth: 200, mb: 3 }}>
+        <FormControl fullWidth>
+          <InputLabel>Year</InputLabel>
+          <Select
+            value={selectedYear}
+            label="Year"
+            onChange={(e) => setSelectedYear(e.target.value)}
+            disabled={loading}
           >
-            Loading chart data...
-          </Box>
-        ) : (
-          <Box sx={{ height: "400px" }}>
-            <Line options={chartOptions} data={getChartData()} />
-          </Box>
-        )}
+            {availableYears.map((year) => (
+              <MenuItem key={year} value={year}>
+                {year}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Box>
-    </div>
+
+      {loading ? (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "400px",
+          }}
+        >
+          Loading chart data...
+        </Box>
+      ) : (
+        <Box sx={{ height: "400px" }}>
+          <Line options={chartOptions} data={getChartData()} />
+        </Box>
+      )}
+    </Box>
   );
 };
 
-export default Graph;
+export default FineGraph;

@@ -2,6 +2,7 @@ import React from "react";
 import Heatmap from "./Heatmap";
 import RaidStatusGraph from "./graphs/RaidStatusGraph";
 import TokenValidator from "../utils/tokenValidator";
+import FineGraph from "./graphs/FineGraph";
 
 const Dashboard = () => {
   TokenValidator();
@@ -11,7 +12,9 @@ const Dashboard = () => {
         <div className="w-full h-[40vh]">
           <RaidStatusGraph />
         </div>
-        <div className="w-full h-[40vh] bg-blue-400"></div>
+        <div className="w-full h-[40vh] bg-white rounded-xl shadow-lg">
+          <FineGraph />
+        </div>
       </div>
       <div className="w-[55vw] h-auto p-10  bg-white rounded-xl shadow-lg">
         <h1 className="text-2xl mb-5 font-bold ">
