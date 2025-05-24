@@ -124,7 +124,7 @@ const UserHandoverRecords = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="bg-gray-400 rounded-lg shadow-md overflow-hidden">
+      <div className="bg-gray-400 rounded-lg shadow-md overflow-hidden ">
         <div className="p-4 bg-gradient-to-r from-[#27272A] to-[#3f3f46]">
           <h2 className="text-2xl font-bold text-white">
             Your Handover Records
@@ -133,7 +133,7 @@ const UserHandoverRecords = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+          <table className="min-w-full divide-y divide-gray-200 ">
             <thead className="bg-gray-300">
               <tr>
                 <th

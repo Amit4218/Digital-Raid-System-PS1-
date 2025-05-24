@@ -122,7 +122,6 @@ const Logs = () => {
             </div>
           </div>
 
-
           {/* Loading/Error State */}
           {loading && (
             <div className="p-6 flex justify-center">
@@ -145,159 +144,161 @@ const Logs = () => {
 
           {/* Table */}
           {!loading && !error && (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                      onClick={() => handleSort("action")}
-                    >
-                      <div className="flex items-center">
-                        Action
-                        {sortConfig.key === "action" && (
-                          <span className="ml-1">
-                            {sortConfig.direction === "asc" ? (
-                              <ChevronUp className="h-4 w-4" />
-                            ) : (
-                              <ChevronDown className="h-4 w-4" />
-                            )}
-                          </span>
-                        )}
-                      </div>
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                      onClick={() => handleSort("performedBy")}
-                    >
-                      <div className="flex items-center">
-                        User
-                        {sortConfig.key === "performedBy" && (
-                          <span className="ml-1">
-                            {sortConfig.direction === "asc" ? (
-                              <ChevronUp className="h-4 w-4" />
-                            ) : (
-                              <ChevronDown className="h-4 w-4" />
-                            )}
-                          </span>
-                        )}
-                      </div>
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                      onClick={() => handleSort("targetId")}
-                    >
-                     
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                      onClick={() => handleSort("performedAt")}
-                    >
-                      <div className="flex items-center">
-                        Timestamp
-                        {sortConfig.key === "performedAt" && (
-                          <span className="ml-1">
-                            {sortConfig.direction === "asc" ? (
-                              <ChevronUp className="h-4 w-4" />
-                            ) : (
-                              <ChevronDown className="h-4 w-4" />
-                            )}
-                          </span>
-                        )}
-                      </div>
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Changes
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {sortedLogs.length > 0 ? (
-                    sortedLogs.map((log) => (
-                      <tr key={log._id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            {getActionIcon(log.action)}
-                            <span
-                              className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${getActionColor(
-                                log.action
-                              )}`}
-                            >
-                              {log.action.replace(/_/g, " ")}
+            <div className="overflow-x-auto ">
+              <div className="relative max-h-[calc(100vh-200px)] overflow-y-auto no-scrollbar">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50 sticky top-0 z-10">
+                    <tr>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                        onClick={() => handleSort("action")}
+                      >
+                        <div className="flex items-center">
+                          Action
+                          {sortConfig.key === "action" && (
+                            <span className="ml-1">
+                              {sortConfig.direction === "asc" ? (
+                                <ChevronUp className="h-4 w-4" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4" />
+                              )}
                             </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
-                              <User className="h-4 w-4 text-gray-500" />
+                          )}
+                        </div>
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                        onClick={() => handleSort("performedBy")}
+                      >
+                        <div className="flex items-center">
+                          User
+                          {sortConfig.key === "performedBy" && (
+                            <span className="ml-1">
+                              {sortConfig.direction === "asc" ? (
+                                <ChevronUp className="h-4 w-4" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4" />
+                              )}
+                            </span>
+                          )}
+                        </div>
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                        onClick={() => handleSort("targetId")}
+                      >
+                        Target ID
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                        onClick={() => handleSort("performedAt")}
+                      >
+                        <div className="flex items-center">
+                          Timestamp
+                          {sortConfig.key === "performedAt" && (
+                            <span className="ml-1">
+                              {sortConfig.direction === "asc" ? (
+                                <ChevronUp className="h-4 w-4" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4" />
+                              )}
+                            </span>
+                          )}
+                        </div>
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Changes
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {sortedLogs.length > 0 ? (
+                      sortedLogs.map((log) => (
+                        <tr key={log._id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              {getActionIcon(log.action)}
+                              <span
+                                className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${getActionColor(
+                                  log.action
+                                )}`}
+                              >
+                                {log.action.replace(/_/g, " ")}
+                              </span>
                             </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">
-                                {log.performedBy?.name || "System"}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                                <User className="h-4 w-4 text-gray-500" />
                               </div>
-                              <div className="text-sm text-gray-500">
-                                {log.performedBy?.email ||
-                                  log.performedBy ||
-                                  "N/A"}
+                              <div className="ml-4">
+                                <div className="text-sm font-medium text-gray-900">
+                                  {log.performedBy?.name || "System"}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  {log.performedBy?.email ||
+                                    log.performedBy ||
+                                    "N/A"}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {log.targetId}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <div className="flex items-center">
-                            <Calendar className="h-4 w-4 text-gray-400 mr-1" />
-                            {format(new Date(log.performedAt), "PPpp")}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
-                          <div className="space-y-1">
-                            {log.changes?.map((change, idx) => (
-                              <div key={idx} className="text-xs">
-                                <span className="font-medium">
-                                  {change.field}:
-                                </span>{" "}
-                                {change.oldValue ? (
-                                  <>
-                                    <span className="line-through text-red-500">
-                                      {JSON.stringify(change.oldValue)}
-                                    </span>{" "}
-                                    →{" "}
-                                  </>
-                                ) : null}
-                                <span className="text-green-600">
-                                  {JSON.stringify(
-                                    change.newValue || change.value
-                                  )}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {log.targetId}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <div className="flex items-center">
+                              <Calendar className="h-4 w-4 text-gray-400 mr-1" />
+                              {format(new Date(log.performedAt), "PPpp")}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-500">
+                            <div className="space-y-1">
+                              {log.changes?.map((change, idx) => (
+                                <div key={idx} className="text-xs">
+                                  <span className="font-medium">
+                                    {change.field}:
+                                  </span>{" "}
+                                  {change.oldValue ? (
+                                    <>
+                                      <span className="line-through text-red-500">
+                                        {JSON.stringify(change.oldValue)}
+                                      </span>{" "}
+                                      →{" "}
+                                    </>
+                                  ) : null}
+                                  <span className="text-green-600">
+                                    {JSON.stringify(
+                                      change.newValue || change.value
+                                    )}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan="5"
+                          className="px-6 py-4 text-center text-sm text-gray-500"
+                        >
+                          No audit logs found
                         </td>
                       </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan="5"
-                        className="px-6 py-4 text-center text-sm text-gray-500"
-                      >
-                        No audit logs found
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
