@@ -13,6 +13,7 @@ import BlackListedToken from "../models/blackList.model.js";
 import crypto from "crypto";
 import path from "path";
 import fs from "fs/promises";
+import { log } from "console";
 const router = express.Router();
 
 // Login Route
@@ -356,21 +357,21 @@ router.post("/handover/:raidId", async (req, res) => {
 // handover get route
 router.get("/handover-records", async (req, res) => {
   const { userId } = req.query;
-  
+
   try {
     const records = await HandoverRecord.find({
-      "custodyChain.handoverFrom.userId": userId
+      "custodyChain.handoverFrom.userId": userId,
     });
-    
+
     res.status(200).json({
       success: true,
-      data: records
+      data: records,
     });
   } catch (error) {
     console.error("Error fetching user handover records:", error);
     res.status(500).json({
       message: "Failed to fetch user records",
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -805,6 +806,18 @@ router.get("/evidence/:raidId", async (req, res) => {
     console.error("Evidence route error:", error);
     return res.status(500).json({ message: "Something went wrong" });
   }
+});
+
+router.post("/fines", async (req, res) => {
+  const { amount, bankReciept, fineReciept } = req.body;
+
+  try {
+    
+  } catch (error) {
+    
+  }
+
+  res.status(200).json({ message: "success", submissionData });
 });
 
 export default router;
