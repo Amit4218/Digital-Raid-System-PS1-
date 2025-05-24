@@ -1,23 +1,16 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import html2pdf from "html2pdf.js";
+import policeLogo from "../Images/sikkimpolice-removebg-preview.png";
 
 const RaidRequest = () => {
   const { raidId } = useParams();
   const navigate = useNavigate();
   const [raid, setRaid] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isUploading, setIsUploading] = useState(false);
-  const [formData, setFormData] = useState({
-    warrantFilePath: "",
-  });
-  console.log(formData);
-
-  const [errors, setErrors] = useState({
-    warrantFile: "",
-  });
-  const fileInputRef = useRef(null);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     const fetchRaids = async () => {
@@ -44,19 +37,131 @@ const RaidRequest = () => {
     fetchRaids();
   }, [raidId]);
 
+  const generateWarrantPDF = async () => {
+    if (!raid) return;
+
+    // Create HTML content for the warrant
+    const warrantHTML = `
+      <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; position: relative;">
+        <!-- Watermark -->
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.1; z-index: -1;">
+          <img src="${policeLogo}" style="width: 400px; height: auto;" />
+        </div>
+        
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #1a365d; font-size: 24px; margin-bottom: 5px;">Sikkim Police Department</h1>
+          <h2 style="color: #3182ce; font-size: 20px; margin-bottom: 20px;">SEARCH WARRANT</h2>
+          <div style="border-top: 2px solid #3182ce; width: 100px; margin: 0 auto;"></div>
+        </div>
+        
+        <!-- Warrant Content -->
+        <div style="margin-bottom: 20px;">
+          <p style="text-align: right; margin-bottom: 30px;">Date: ${new Date().toLocaleDateString()}</p>
+          
+          <p style="margin-bottom: 15px; line-height: 1.6;">
+            To: ${raid.inCharge || "Raid Officer"}<br/>
+            Rank: Raid Officer
+          </p>
+          
+          <p style="margin-bottom: 15px; line-height: 1.6;">
+            You are hereby authorized and directed to conduct a search at the following premises:
+          </p>
+          
+          <div style="background-color: #f0f4f8; padding: 15px; border-left: 4px solid #3182ce; margin-bottom: 20px;">
+            <p><strong>Address:</strong> ${raid.location?.address || "N/A"}</p>
+          </div>
+          
+          <p style="margin-bottom: 15px; line-height: 1.6;">
+            <strong>Suspect Name:</strong> ${
+              raid.culprits?.[0]?.name || "N/A"
+            }<br/>
+            <strong>Identification:</strong> ${
+              raid.culprits?.[0]?.identification || "N/A"
+            }
+          </p>
+          
+          <p style="margin-bottom: 15px; line-height: 1.6;">
+            <strong>Scheduled Raid Date:</strong> ${new Date(
+              raid.scheduledDate
+            ).toLocaleDateString()}
+          </p>
+          
+          <p style="margin-bottom: 15px; line-height: 1.6;">
+            <strong>Reason for Search:</strong> ${raid.description || "N/A"}
+          </p>
+          
+          <p style="margin-bottom: 15px; line-height: 1.6;">
+            This warrant is valid for execution on the specified date only. You are authorized to seize any items 
+            that may be evidence of criminal activity.
+          </p>
+        </div>
+        
+        <!-- Footer -->
+        <div style="margin-top: 50px;">
+          <div style="float: right; text-align: center;">
+            <div style="border-top: 1px solid #000; width: 200px; margin-bottom: 5px;"></div>
+            <p>Authorized Signature</p>
+            <p>Sikkim Police Department</p>
+          </div>
+          <div style="clear: both;"></div>
+        </div>
+      </div>
+    `;
+
+    // Generate PDF
+    const options = {
+      margin: 10,
+      filename: `warrant_${
+        raid.culprits?.[0]?.name?.replace(/\s+/g, "_") || "raid"
+      }.pdf`,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+    };
+
+    try {
+      // Generate the PDF
+      const pdf = await html2pdf()
+        .from(warrantHTML)
+        .set(options)
+        .outputPdf("blob");
+
+      // Create a FormData object to send the PDF to the server
+      const formDataToSend = new FormData();
+      formDataToSend.append("warrant", pdf, `warrant_${Date.now()}.pdf`);
+
+      // Upload the generated PDF
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/admin/upload-warrant`,
+        formDataToSend,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            "x-access-key": import.meta.env.VITE_SECRET_ACCESS_KEY,
+          },
+          timeout: 30000,
+        }
+      );
+
+      return response.data.filePath;
+    } catch (error) {
+      console.error("Error generating or uploading warrant:", error);
+      throw error;
+    }
+  };
+
   const handleApprove = async () => {
     try {
+      setIsGenerating(true);
       const adminId = localStorage.getItem("adminId");
       if (!adminId) {
         toast.error("User ID not found in local storage");
         return;
       }
 
-      // Check if warrant file is uploaded
-      if (!formData.warrantFilePath) {
-        toast.error("Please upload warrant file before approving");
-        return;
-      }
+      // Generate and upload the warrant PDF
+      const warrantFilePath = await generateWarrantPDF();
 
       const response = await axios.put(
         `${
@@ -67,7 +172,7 @@ const RaidRequest = () => {
           approvalStatus: "approved",
           approvalDate: new Date(),
           warrant: {
-            fileUrl: formData.warrantFilePath,
+            fileUrl: warrantFilePath,
           },
         },
         {
@@ -77,95 +182,18 @@ const RaidRequest = () => {
         }
       );
 
-      toast.success("Raid approved successfully!");
+      toast.success("Raid approved and warrant generated successfully!");
       navigate("/admin/unplannedRaids");
     } catch (error) {
       console.error("Error approving raid:", error);
       toast.error("Failed to approve raid");
+    } finally {
+      setIsGenerating(false);
     }
-  };
-
-  const handlePreview = () => {
-    alert("Opening warrant: " + (raid?.warrant?.fileUrl || "No file"));
   };
 
   const handleClose = () => {
     navigate("/admin/unplannedRaids");
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleFileClick = () => {
-    fileInputRef.current.click();
-  };
-
-  const uploadWarrantFile = async (file) => {
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append("warrant", file);
-
-    try {
-      setIsUploading(true);
-      const response = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/admin/upload-warrant`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            "x-access-key": import.meta.env.VITE_SECRET_ACCESS_KEY,
-          },
-        }
-      );
-
-      return response.data.filePath;
-    } catch (error) {
-      console.error("Error uploading warrant:", error);
-      throw error;
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const handleFileChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // Validate file
-    if (file.size > 5 * 1024 * 1024) {
-      setErrors((prev) => ({
-        ...prev,
-        warrantFile: "File size must be less than 5MB",
-      }));
-      return;
-    }
-    if (!["application/pdf", "image/jpeg", "image/png"].includes(file.type)) {
-      setErrors((prev) => ({
-        ...prev,
-        warrantFile: "Only PDF, JPEG, and PNG files are allowed",
-      }));
-      return;
-    }
-
-    try {
-      const filePath = await uploadWarrantFile(file);
-      setFormData((prev) => ({
-        ...prev,
-        warrantFilePath: filePath,
-      }));
-      setErrors((prev) => ({ ...prev, warrantFile: "" }));
-    } catch (error) {
-      setErrors((prev) => ({
-        ...prev,
-        warrantFile: "Failed to upload warrant file",
-      }));
-    }
   };
 
   if (loading) return <div className="p-6">Loading...</div>;
@@ -209,40 +237,15 @@ const RaidRequest = () => {
         </div>
 
         <div className="flex flex-col md:flex-row md:justify-between items-center gap-6 mt-4">
-          <div className="flex gap-4">
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={handleFileClick}
-                disabled={isUploading}
-                className="px-4 py-2 bg-[#213448] text-white font-bold rounded hover:bg-[#547792] disabled:opacity-50"
-              >
-                {isUploading ? "Uploading..." : "Upload Warrant *"}
-              </button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                className="hidden"
-                accept=".pdf,.jpg,.jpeg,.png"
-              />
-              {formData.warrantFilePath ? (
-                <p className="text-sm mt-1 text-green-600">
-                  Warrant uploaded successfully
-                </p>
-              ) : errors.warrantFile ? (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.warrantFile}
-                </p>
-              ) : null}
-            </div>
-            <button
-              onClick={handleApprove}
-              className="bg-green-600 text-white font-bold px-6 py-2 rounded-md hover:bg-green-700"
-            >
-              Approve
-            </button>
-          </div>
+          <button
+            onClick={handleApprove}
+            className="bg-green-600 text-white font-bold px-6 py-2 rounded-md hover:bg-green-700 disabled:opacity-50"
+            disabled={isGenerating}
+          >
+            {isGenerating
+              ? "Generating Warrant..."
+              : "Approve & Generate Warrant"}
+          </button>
 
           <button
             onClick={handleClose}
