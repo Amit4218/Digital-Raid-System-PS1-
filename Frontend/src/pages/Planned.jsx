@@ -152,24 +152,24 @@ function Planned() {
     }
   };
 
-  const downloadWarrant = () => {
-    const fileUrl = data.warrant?.fileUrl; // "/uploads/warrant-1747837969061.pdf"
-    if (!fileUrl) return;
+  // const downloadWarrant = () => {
+  //   const fileUrl = data.warrant?.fileUrl; // "/uploads/warrant-1747837969061.pdf"
+  //   if (!fileUrl) return;
 
-    const filename = fileUrl.split("/").pop(); // "warrant-1747837969061.pdf"
-    const downloadUrl = `${
-      import.meta.env.VITE_BASE_URL
-    }/user/download/${filename}`;
+  //   const filename = fileUrl.split("/").pop(); // "warrant-1747837969061.pdf"
+  //   const downloadUrl = `${
+  //     import.meta.env.VITE_BASE_URL
+  //   }/user/download/${filename}`;
 
-    console.log("Download URL:", downloadUrl); // Debug log
+  //   console.log("Download URL:", downloadUrl); // Debug log
 
-    const link = document.createElement("a");
-    link.href = downloadUrl;
-    link.download = "warrant.pdf";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  //   const link = document.createElement("a");
+  //   link.href = downloadUrl;
+  //   link.download = "warrant.pdf";
+  //   document.body.appendChild(link);
+  //   link.click();
+  //   document.body.removeChild(link);
+  // };
 
   return (
     <>
@@ -374,7 +374,7 @@ function Planned() {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            {/* <div className="flex flex-wrap gap-2">
               <button
                 onClick={downloadWarrant}
                 className={
@@ -385,7 +385,7 @@ function Planned() {
               >
                 {!data.warrant.fileUrl ? "Not Uploaded" : "Download Warrent"}
               </button>
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -416,18 +416,18 @@ function Planned() {
         <div className="">
           <SearchCriminal />
         </div>
-        <div className="w-[100vw] flex flex-wrap flex-col md:grid md:grid-cols-2 gap-4 mb-4 mt-20 justify-center items-center">
+        <div className=" flex flex-wrap flex-col md:grid md:grid-cols-2 gap-4 mb-4 mt-10 justify-center items-center z-10 ">
           <div>
             <FineForm/>
           </div>
         {/* Uploading the image */}
-        <div className="mt-3">
+        <div className="-mb-[10rem]">
           <UploadImage />
         </div>
         </div>
         {/* Uploading the Video */}
 
-        <div className="">
+        <div className="mt-10">
           <UploadVideo />
         </div>
 

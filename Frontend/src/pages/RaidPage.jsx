@@ -6,7 +6,6 @@ import Loading from "../components/Loading";
 import Navbar from "../components/Navbar";
 import TokenValidator from "../utils/tokenValidator";
 
-
 function RaidPage() {
   TokenValidator();
   const navigate = useNavigate();
@@ -67,6 +66,42 @@ function RaidPage() {
 
   const handleStartRaid = (raidId) => {
     navigate("/permission", { state: { raidId } });
+  };
+
+  // New handler for downloading warrant
+  const handleDownloadWarrant = async (fileUrl) => {
+    if (!fileUrl) {
+      toast.error("No warrant file available for download.");
+      return;
+    }
+
+    const filename = fileUrl.split("/").pop(); // Extract filename from the URL
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_BASE_URL}/user/download/${filename}`,
+        {
+          responseType: "blob", // Important for downloading files
+          headers: {
+            "x-access-key": import.meta.env.VITE_SECRET_ACCESS_KEY,
+          },
+        }
+      );
+
+      // Create a blob URL and trigger download
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url); // Clean up the URL
+
+      toast.success("Warrant downloaded successfully!");
+    } catch (error) {
+      console.error("Error downloading warrant:", error);
+      toast.error("Failed to download warrant.");
+    }
   };
 
   // Filter raids based on conditions
@@ -145,11 +180,11 @@ function RaidPage() {
           <div className="bg-gray-800/80 border border-gray-700 rounded-xl shadow-2xl overflow-hidden">
             {/* Desktop Header */}
             <div className="hidden md:grid grid-cols-12 gap-4 py-4 px-6 bg-gray-700/50 rounded-t-xl font-semibold text-amber-400 text-sm uppercase tracking-wider border-b border-gray-700">
-              <span className="col-span-3">Raid ID</span>
+              <span className="col-span-2">Raid ID</span>
               <span className="col-span-2">Incharge</span>
               <span className="col-span-3">Location</span>
               <span className="col-span-2">Type</span>
-              <span className="col-span-2 text-center">Action</span>
+              <span className="col-span-3 text-center">Actions</span>
             </div>
 
             {/* Raids List */}
@@ -260,42 +295,74 @@ function RaidPage() {
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => handleStartRaid(raid._id)}
-                        className={`w-full py-2 rounded-lg text-sm font-bold transition-all duration-200 flex items-center justify-center ${
-                          canStartRaid(raid)
-                            ? "bg-gradient-to-r from-amber-500 to-amber-600 text-gray-900 hover:from-amber-400 hover:to-amber-500 shadow-md"
-                            : "bg-gray-700 text-gray-500 cursor-not-allowed"
-                        }`}
-                        disabled={!canStartRaid(raid)}
-                      >
-                        {raid.status === "active" ? (
-                          <>
-                            <svg
-                              className="h-4 w-4 mr-2 animate-pulse"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M13 10V3L4 14h7v7l9-11h-7z"
-                              />
-                            </svg>
-                            In Progress
-                          </>
-                        ) : raid.status === "completed" ? (
-                          "Completed"
-                        ) : (
-                          "Start Raid"
-                        )}
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleStartRaid(raid._id)}
+                          className={`w-full py-2 rounded-lg text-sm font-bold transition-all duration-200 flex items-center justify-center ${
+                            canStartRaid(raid)
+                              ? "bg-gradient-to-r from-amber-500 to-amber-600 text-gray-900 hover:from-amber-400 hover:to-amber-500 shadow-md"
+                              : "bg-gray-700 text-gray-500 cursor-not-allowed"
+                          }`}
+                          disabled={!canStartRaid(raid)}
+                        >
+                          {raid.status === "active" ? (
+                            <>
+                              <svg
+                                className="h-4 w-4 mr-2 animate-pulse"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                                />
+                              </svg>
+                              In Progress
+                            </>
+                          ) : raid.status === "completed" ? (
+                            "Completed"
+                          ) : (
+                            "Start Raid"
+                          )}
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleDownloadWarrant(raid.warrant?.fileUrl)
+                          }
+                          className={`flex-shrink-0 py-2 px-3 rounded-lg text-sm font-bold transition-all duration-200 flex items-center justify-center ${
+                            raid.warrant?.fileUrl
+                              ? "bg-blue-600 text-white hover:bg-blue-700 shadow-md"
+                              : "bg-gray-700 text-gray-500 cursor-not-allowed"
+                          }`}
+                          disabled={!raid.warrant?.fileUrl}
+                          title={
+                            raid.warrant?.fileUrl
+                              ? "Download Warrant"
+                              : "No Warrant Available"
+                          }
+                        >
+                          <svg
+                            className="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                            />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
 
                     {/* Desktop View */}
-                    <span className="hidden md:flex items-center col-span-3 font-mono text-xs text-gray-300 break-all">
+                    <span className="hidden md:flex items-center col-span-2 font-mono text-xs text-gray-300 break-all">
                       <svg
                         className="h-4 w-4 text-gray-500 mr-2 flex-shrink-0"
                         fill="none"
@@ -377,7 +444,7 @@ function RaidPage() {
                     </span>
 
                     {/* Status & Action (Desktop) */}
-                    <div className="hidden md:flex flex-col items-center justify-center col-span-2 space-y-2">
+                    <div className="hidden md:flex flex-col items-center justify-center col-span-3 space-y-2">
                       <span
                         className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
                           raid.status === "completed"
@@ -389,38 +456,70 @@ function RaidPage() {
                       >
                         {raid.status || "unknown"}
                       </span>
-                      <button
-                        onClick={() => handleStartRaid(raid._id)}
-                        className={`w-full max-w-[120px] py-2 rounded-md text-xs font-bold transition-all duration-200 flex items-center justify-center ${
-                          canStartRaid(raid)
-                            ? "bg-gradient-to-r from-amber-500 to-amber-600 text-gray-900 hover:from-amber-400 hover:to-amber-500 shadow-sm"
-                            : "bg-gray-700 text-gray-500 cursor-not-allowed"
-                        }`}
-                        disabled={!canStartRaid(raid)}
-                      >
-                        {raid.status === "active" ? (
-                          <>
-                            <svg
-                              className="h-3 w-3 mr-1 animate-pulse"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M13 10V3L4 14h7v7l9-11h-7z"
-                              />
-                            </svg>
-                            In Progress
-                          </>
-                        ) : raid.status === "completed" ? (
-                          "Completed"
-                        ) : (
-                          "Start Raid"
-                        )}
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleStartRaid(raid._id)}
+                          className={`w-full max-w-[120px] py-2 rounded-md text-xs font-bold transition-all duration-200 flex items-center justify-center ${
+                            canStartRaid(raid)
+                              ? "bg-gradient-to-r from-amber-500 to-amber-600 text-gray-900 hover:from-amber-400 hover:to-amber-500 shadow-sm"
+                              : "bg-gray-700 text-gray-500 cursor-not-allowed"
+                          }`}
+                          disabled={!canStartRaid(raid)}
+                        >
+                          {raid.status === "active" ? (
+                            <>
+                              <svg
+                                className="h-3 w-3 mr-1 animate-pulse"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                                />
+                              </svg>
+                              In Progress
+                            </>
+                          ) : raid.status === "completed" ? (
+                            "Completed"
+                          ) : (
+                            "Start Raid"
+                          )}
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleDownloadWarrant(raid.warrant?.fileUrl)
+                          }
+                          className={`flex-shrink-0 py-2 px-9 rounded-md text-xs font-bold transition-all duration-200 flex items-center justify-center ${
+                            raid.warrant?.fileUrl
+                              ? "bg-blue-600 text-white hover:bg-blue-700 shadow-sm"
+                              : "bg-gray-700 text-gray-500 cursor-not-allowed"
+                          }`}
+                          disabled={!raid.warrant?.fileUrl}
+                          title={
+                            raid.warrant?.fileUrl
+                              ? "Download Warrant"
+                              : "No Warrant Available"
+                          }
+                        >
+                          <svg
+                            className="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                            />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))

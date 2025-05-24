@@ -87,12 +87,12 @@ function Raids() {
     });
 
   return (
-    <div className="flex flex-col items-center min-h-[90vh] pt-20 pb-8 relative overflow-hidden bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPgogIDxkZWZzPgogICAgPHBhdHRlcm4gaWQ9IndhdmUiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj4KICAgICAgPHBhdGggZD0iTTAgNTAgQzI1IDI1LCAyNSA3NSwgNTAgNTAgQzc1IDI1LCA3NSA3NSwgMTAwIDUwIiBzdHJva2U9IiNlMGYyZmUiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIgLz4KICAgICAgPHBhdGggZD0iTTAgMCBMMTAwIDAgTDEwMCAxMDAgTDAgMTAwIFoiIGZpbGw9IiNmOGZhZmMiIC8+CiAgICA8L3BhdHRlcm4+CiAgPC9kZWZzPgogIDxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjd2F2ZSkiIC8+Cjwvc3ZnPg==')]">
+    <div className="flex flex-col  items-center min-h-[90vh] pt-20 pb-8 relative overflow-auto bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPgogIDxkZWZzPgogICAgPHBhdHRlcm4gaWQ9IndhdmUiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj4KICAgICAgPHBhdGggZD0iTTAgNTAgQzI1IDI1LCAyNSA3NSwgNTAgNTAgQzc1IDI1LCA3NSA3NSwgMTAwIDUwIiBzdHJva2U9IiNlMGYyZmUiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIgLz4KICAgICAgPHBhdGggZD0iTTAgMCBMMTAwIDAgTDEwMCAxMDAgTDAgMTAwIFoiIGZpbGw9IiNmOGZhZmMiIC8+CiAgICA8L3BhdHRlcm4+CiAgPC9kZWZzPgogIDxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjd2F2ZSkiIC8+Cjwvc3ZnPg==')]">
       {/* Semi-transparent overlay */}
       <div className="absolute inset-0 bg-white/70 z-0"></div>
       
       {/* Content container */}
-      <div className="relative z-10 w-4/5 mx-auto">
+      <div className="relative z-10 w-4/5 mx-auto overflow-auto">
         <div className="bg-white rounded-xl shadow-lg overflow-y-scroll no-scrollbar border border-[#e2e8f0]">
           <div className="grid grid-cols-6 gap-4 bg-[#213448] p-4 font-semibold text-white sticky top-0 z-20">
             <div>Raid ID</div>
