@@ -1,20 +1,59 @@
 import React, { useState } from "react";
-import { FaUserShield, FaLock, FaSignInAlt } from "react-icons/fa";
-import {useNavigate} from 'react-router-dom'
+import { FaUserShield, FaLock, FaSignInAlt, FaSpinner } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function Login() {
   const [departmentId, setDepartmentId] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log({ departmentId, password });
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/department/login`,
+        {
+          departmentId,
+          password,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          timeout: 10000, // 10 seconds timeout
+        }
+      );
+
+      if (response.status === 200) {
+        toast.success("Login successful!");
+        // Store token if your API returns one
+        if (response.data.token) {
+          localStorage.setItem("authToken", response.data.token);
+        }
+        navigate("/complains");
+      } else {
+        throw new Error("Invalid credentials");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Login failed. Please try again.";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
-  const navigate = useNavigate()
-  const handleClick = ()=>{
-    navigate('/complains')
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 p-4">
@@ -35,6 +74,13 @@ function Login() {
         {/* Login Form */}
         <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
           <form onSubmit={handleSubmit} className="p-8">
+            {/* Error Message */}
+            {error && (
+              <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
+
             {/* Department ID Field */}
             <div className="mb-6">
               <label
@@ -55,6 +101,8 @@ function Login() {
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1f3143] focus:border-[#1f3143] transition"
                   placeholder="Enter your department ID"
                   required
+                  autoComplete="username"
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -79,6 +127,8 @@ function Login() {
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1f3143] focus:border-[#1f3143] transition"
                   placeholder="Enter your password"
                   required
+                  autoComplete="current-password"
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -86,23 +136,22 @@ function Login() {
             {/* Login Button */}
             <button
               type="submit"
-              onClick={handleClick}
-              className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-[#1f3143] hover:bg-[#152435] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1f3143] transition-colors"
+              className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-[#1f3143] hover:bg-[#152435] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1f3143] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+              disabled={loading}
             >
-              <FaSignInAlt className="mr-2" />
-              Login
+              {loading ? (
+                <>
+                  <FaSpinner className="mr-2 animate-spin" />
+                  Logging in...
+                </>
+              ) : (
+                <>
+                  <FaSignInAlt className="mr-2" />
+                  Login
+                </>
+              )}
             </button>
           </form>
-
-          {/* Footer */}
-          <div className="px-8 py-4 bg-gray-50 text-center">
-            <a
-              href="#"
-              className="text-sm font-medium text-[#1f3143] hover:text-[#152435]"
-            >
-              Forgot your password?
-            </a>
-          </div>
         </div>
       </div>
     </div>

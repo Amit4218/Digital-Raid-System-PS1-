@@ -9,7 +9,7 @@ function App() {
       <div className="app">
         <ErrorBoundary>
           <Routes>
-            <Route path="/login" element={<Login />} />
+            <Route path="/" element={<Login />} />
             {/* Add more routes as needed */}
             <Route path="/complains" element={<Complains/>} />
 
