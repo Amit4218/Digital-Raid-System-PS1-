@@ -163,9 +163,7 @@ const PlannedRaid = () => {
 
       // Upload the generated PDF
       const response = await axios.post(
-        `${
-          import.meta.env.VITE_BASE_URL
-        }/admin/upload-warrant`,
+        `${import.meta.env.VITE_BASE_URL}/admin/upload-warrant`,
         formDataToSend,
         {
           headers: {
@@ -249,6 +247,7 @@ const PlannedRaid = () => {
     try {
       // Generate and upload the warrant PDF
       const warrantFilePath = await generateWarrantPDF();
+      console.log(warrantFilePath);
 
       const raidData = {
         raidType: "planned",

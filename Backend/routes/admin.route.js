@@ -454,7 +454,7 @@ router.put("/raid-approve/:id", async (req, res) => {
     // Find the raid
     const raid = await Raid.findById(raidId);
 
-    if (!raid) {
+    if (!raid) {  
       return res.status(404).json({ message: "Raid not found" });
     }
 

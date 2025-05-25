@@ -109,7 +109,7 @@ function UploadImage() {
   };
 
   return (
-    <div className="bg-[#213448] min-h-screen py-6 px-4 sm:px-6 lg:px-8">
+    <div className="-mt-30">
       <div className="w-full max-w-3xl mx-auto bg-[#2a3d52] shadow-lg rounded-xl overflow-hidden">
         {/* Header with accent color */}
         <div className="bg-[#3a5a7a] py-3 px-6">
