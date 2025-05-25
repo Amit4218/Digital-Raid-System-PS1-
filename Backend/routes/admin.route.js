@@ -5,6 +5,7 @@ import Raid from "../models/raid.model.js";
 import User from "../models/user.model.js";
 import Sessions from "../models/session.model.js";
 import AuditLog from "../models/auditLogs.model.js";
+import Fine from "../models/fine.model.js";
 import HandoverRecord from "../models/handoverRecords.model.js";
 import upload from "../config/multer.config.js";
 import sendEmail from "../utils/nodemailer.util.js";
@@ -295,6 +296,28 @@ router.get("/audit-logs", async (req, res) => {
     });
   }
 });
+
+//fetch all fine data
+router.get("/fines-data", async (req, res) => {
+  try {
+    const fines = await Fine.find()
+      .populate("raidId") // Populate raid data if needed
+      .sort({ createdAt: -1 }); // Sort by newest first
+
+    res.status(200).json({
+      success: true,
+      count: fines.length,
+      data: fines,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+});
+
 
 // To get name of all the raid officer
 
