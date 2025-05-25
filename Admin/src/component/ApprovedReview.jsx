@@ -124,7 +124,7 @@ const ApprovedReview = () => {
   const evidenceVideos = evidence?.[0]?.mediaFiles?.videos || {};
 
   return (
-    <div className="bg-gray-50 p-6 rounded-lg font-sans">
+    <div className="bg-gray-50 p-6 rounded-lg font-sans overflow-y-auto h-[calc(100vh-2rem)] no-scrollbar">
       {/* Header Section */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-3">
@@ -400,10 +400,7 @@ const ApprovedReview = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {evidenceImages.fileUrl?.length > 0 ? (
                       evidenceImages.fileUrl.map((imageUrl, index) => (
-                        <div
-                          key={index}
-                          className="border rounded-lg overflow-hidden"
-                        >
+                        <div key={index} className="border rounded-lg overflow">
                           <img
                             src={imageUrl}
                             alt={`Evidence ${index + 1}`}
@@ -452,7 +449,7 @@ const ApprovedReview = () => {
                 <div>
                   <h3 className="text-md font-medium mb-3">Video Evidence</h3>
                   {evidenceVideos.fileUrl?.length > 0 ? (
-                    <div className="overflow-x-auto">
+                    <div className="overflow-auto">
                       <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                           <tr>

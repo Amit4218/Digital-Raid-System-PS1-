@@ -94,7 +94,10 @@ function UploadImage() {
         setimagePreviewLink(null);
         console.log(res.data);
 
-        const evidenceId = localStorage.setItem("evidenceId", res.data.evidence._id);
+        const evidenceId = localStorage.setItem(
+          "evidenceId",
+          res.data.evidence._id
+        );
       }
     } catch (error) {
       console.error("Submission error:", error);
@@ -139,6 +142,7 @@ function UploadImage() {
                 <option value="Item">Physical Item</option>
                 <option value="Digital">Digital Asset</option>
                 <option value="Document">Document</option>
+                <option value="Liquor">Liquor </option>
                 <option value="Other">Other</option>
               </select>
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400">
